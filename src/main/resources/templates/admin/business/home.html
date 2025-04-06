@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang chủ Nhân viên kinh doanh </title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h2>Trang Home của Admin</h2>
+    <p>Tài khoản: <span th:text="${username}"></span></p>
+    <p>Loại tài khoản: <span th:text="${role}"></span></p>
+    <div class="section">
+    <button onclick="location.href='/account'">Quản lý thông tin cá nhân</button>
+    <button onclick="location.href='/business/reports'">Quản lý báo cáo</button>
+    </div>
+<div class="section">
+    <button onclick="location.href='/admin/employees'">Quản lý nhà cung cấp</button>
+    <button onclick="location.href='/business/products'">Xem thông tin hàng hóa</button>
+</div>
+  <div class="section">
+    <button onclick="location.href='/business/suppliers'">Quản lý kinh doanh</button>
+</div>
+    <button class="logout" onclick="location.href='/logout'">Đăng xuất</button>
+</div>
+</body>
+</html>

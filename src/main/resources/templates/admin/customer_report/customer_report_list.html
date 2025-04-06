@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Báo Cáo Khách Hàng</title>
+  <!-- CSS cho sidebar, header, footer và layout chung -->
+  <link rel="stylesheet" th:href="@{/css/admin/fragments/sidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/admin/fragments/header.css}">
+  <link rel="stylesheet" th:href="@{/css/admin/fragments/footer.css}">
+  <link rel="stylesheet" th:href="@{/css/admin/layout/layout.css}">
+  <link rel="stylesheet" th:href="@{/css/admin/layout/tablelayout.css}">
+  <!-- Font Awesome và Google Fonts -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Thư viện Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .total-customers-box {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+<!-- Thêm header -->
+<div th:replace="~{admin/fragments/header :: header}"></div>
+<!-- Thêm sidebar -->
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+
+<!-- Nội dung chính -->
+<main class="main-content">
+  <div class="wrapper">
+    <!-- Tiêu đề -->
+    <h1 class="tittle">📊 Báo Cáo Khách Hàng</h1>
+
+    <!-- Form chọn ngày + nút cập nhật -->
+    <div class="form-mb-4">
+      <div class="search-container d-flex justify-content-between align-items-center">
+        <form action="/Admin/report/addRange" method="post" class="d-flex align-items-center">
+          <div class="me-3">
+            <label class="form-label me-2 mb-0">Từ ngày:</label>
+            <input type="date" id="fromDate" name="fromDate" th:value="${fromDate}" class="form-control" required>
+          </div>
+          <div class="me-3">
+            <label class="form-label me-2 mb-0">Đến ngày:</label>
+            <input type="date" name="toDate" th:value="${toDate}" class="form-control" required>
+          </div>
+          <button type="submit" class="btn" style="background-color: #D10024; color: white; margin-top: 25px">
+            <i class="fas fa-sync-alt me-1"></i> Cập nhật
+          </button>
+        </form>
+        <a th:href="@{/Admin/report/export/excel(fromDate=${fromDate}, toDate=${toDate})}" class="btn btn-success" style="margin-top: 25px">
+          <i class="fas fa-file-excel me-1"></i> Xuất Excel
+        </a>
+      </div>
+      <hr style="border: 1px solid #e9ecef; margin: 20px 0;">
+    </div>
+
+    <!-- Hiển thị tổng số khách hàng -->
+    <div class="d-flex mb-3">
+      <span class="total-customers-box">📌 <b>Tổng khách hàng:</b> <span style="color: #28a745;" th:text="${totalCustomers}"></span></span>
+    </div>
+
+    <!-- Hiển thị thông báo -->
+    <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
+
+    <!-- Bảng dữ liệu -->
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+        <tr>
+          <th width="40" class="text-center">
+            <input type="checkbox" id="selectAll" class="form-check-input">
+          </th>
+          <th width="60">STT</th>
+          <th>Khách Hàng</th>
+          <th>Tổng Đơn Hàng</th>
+          <th>Tổng Chi Tiêu</th>
+          <th>Trạng Thái Thanh Toán</th>
+          <th>Loại KH</th>
+          <th>Ngày Đơn Hàng Gần Nhất</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Kiểm tra danh sách có rỗng không -->
+        <tr th:if="${customerReports.isEmpty()}">
+          <td colspan="8" class="text-center text-muted">Không có dữ liệu</td>
+        </tr>
+
+        <tr th:each="report, iter : ${customerReports.content}">
+          <td class="text-center">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input customerCheckbox"
+                     th:name="selectedCustomers" th:value="${report.customerId}"
+                     th:id="'customerCheck-' + ${iter.index}">
+            </div>
+          </td>
+          <td th:text="${iter.count + (currentPage * customerReports.size)}"></td> <!-- Tính STT theo trang -->
+          <td th:text="${report.customerName}"></td>
+          <td th:text="${report.totalOrders}"></td>
+          <td th:text="${#numbers.formatDecimal(report.totalSpent, 0, 'COMMA', 0, 'POINT') + ' VND'}"></td>
+          <td th:text="${report.lastPaymentStatus != null ? report.lastPaymentStatus : 'Không xác định'}"></td>
+          <td th:text="${report.spendingCategory}"></td>
+          <td th:text="${#temporals.format(report.lastOrderDate, 'dd/MM/yyyy HH:mm')}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Phân trang -->
+    <div class="d-flex justify-content-end mt-4" th:if="${customerReports.totalPages > 1}">
+      <nav aria-label="Page navigation">
+        <ul class="pagination m-0">
+          <!-- Nút trang đầu tiên -->
+          <li class="page-item" th:classappend="${customerReports.first} ? 'disabled'">
+            <a class="page-link"
+               th:href="@{/Admin/report(page=0, fromDate=${fromDate}, toDate=${toDate})}"
+               aria-label="First">
+              <span aria-hidden="true">««</span>
+            </a>
+          </li>
+
+          <!-- Nút lùi về trang trước -->
+          <li class="page-item" th:classappend="${customerReports.first} ? 'disabled'">
+            <a class="page-link"
+               th:href="@{/Admin/report(page=${customerReports.number - 1}, fromDate=${fromDate}, toDate=${toDate})}"
+               aria-label="Previous">
+              <span aria-hidden="true">«</span>
+            </a>
+          </li>
+
+          <li class="page-item disabled">
+            <span class="page-link">
+              <span th:text="${customerReports.number + 1}"></span> / <span th:text="${customerReports.totalPages}"></span>
+            </span>
+          </li>
+
+          <!-- Nút chuyển sang trang sau -->
+          <li class="page-item" th:classappend="${customerReports.last} ? 'disabled'">
+            <a class="page-link"
+               th:href="@{/Admin/report(page=${customerReports.number + 1}, fromDate=${fromDate}, toDate=${toDate})}"
+               aria-label="Next">
+              <span aria-hidden="true">»</span>
+            </a>
+          </li>
+
+          <!-- Nút trang cuối cùng -->
+          <li class="page-item" th:classappend="${customerReports.last} ? 'disabled'">
+            <a class="page-link"
+               th:href="@{/Admin/report(page=${customerReports.totalPages - 1}, fromDate=${fromDate}, toDate=${toDate})}"
+               aria-label="Last">
+              <span aria-hidden="true">»»</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</main>
+
+<!-- Thêm footer -->
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+
+
+<!-- JavaScript -->
+<script th:src="@{/js/admin/layout.js}"></script>
+<script th:src="@{/js/admin/header.js}" type="text/javascript"></script>
+<script th:src="@{/js/admin/sidebarActiveMenu.js}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</body>
+</html>

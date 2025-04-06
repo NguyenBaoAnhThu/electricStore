@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Đơn Hàng</title>
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/header.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/layout.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --shop-red: #D10024;
+            --shop-red-hover: #bb2d3b;
+            --shop-light-bg: #f8f9fa;
+            --shop-border: #e9ecef;
+            --shop-light-red: rgba(209, 0, 36, 0.05);
+            --shop-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 70px;
+        }
+
+        .wrapper {
+            padding: 25px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: var(--shop-shadow);
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--shop-border);
+            padding-bottom: 15px;
+        }
+
+        .page-icon {
+            background-color: var(--shop-light-red);
+            color: var(--shop-red);
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 22px;
+        }
+
+        .tittle {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0;
+        }
+
+        .section-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--shop-border);
+            overflow: hidden;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shop-shadow);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: linear-gradient(to right, var(--shop-light-red), white);
+            border-bottom: 1px solid var(--shop-border);
+        }
+
+        .section-header i {
+            color: var(--shop-red);
+            font-size: 20px;
+            margin-right: 10px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .section-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        .btn-primary, .btn-danger {
+            background-color: var(--shop-red);
+            border-color: var(--shop-red);
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(209, 0, 36, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+
+        .btn-primary:hover, .btn-danger:hover {
+            background-color: var(--shop-red-hover);
+            border-color: var(--shop-red-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(209, 0, 36, 0.25);
+        }
+
+        .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #ced4da;
+            background-color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+            color: #5a6268;
+            border-color: #b1b7bd;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            padding: 10px 12px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: rgba(209, 0, 36, 0.4);
+            box-shadow: 0 0 0 0.25rem rgba(209, 0, 36, 0.15);
+        }
+
+        .error {
+            color: var(--shop-red);
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .showSelectCustomer, .showSelectProduct {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            z-index: 100;
+            background-color: white;
+        }
+
+        .productContainer {
+            position: relative;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid var(--shop-border);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.03);
+        }
+
+        .productContainer:hover {
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        #total {
+            font-weight: bold;
+            color: var(--shop-red);
+            background-color: white;
+            font-size: 1.1rem;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--shop-red);
+            border-color: var(--shop-red);
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+
+        .required-asterisk {
+            color: var(--shop-red);
+            margin-left: 3px;
+        }
+
+        /* Product card improvements */
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--shop-border);
+        }
+
+        .product-title {
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 0;
+            font-size: 1.05rem;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .product-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 992px) {
+            .product-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .submit-area {
+            background-color: var(--shop-light-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-display {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--shop-red);
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-check-input {
+            margin-right: 8px;
+        }
+
+        .customer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .customer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{admin/fragments/header :: header}"></div>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+<main class="main-content" th:fragment="content">
+    <div class="wrapper">
+        <div class="page-header">
+            <div class="page-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h1 class="tittle">Thêm Đơn Hàng Mới</h1>
+        </div>
+
+        <form th:action="@{/Admin/order/create}" method="POST" id="orderForm" th:object="${orderDTO}" class="needs-validation" novalidate>
+            <!-- Thông tin khách hàng -->
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-user"></i>
+                    <h5>Thông Tin Khách Hàng</h5>
+                </div>
+                <div class="section-body">
+                    <button type="button" class="btn btn-primary btn-sm mb-4" id="selectCustomerBtn">
+                        <i class="fas fa-users me-1"></i> Chọn khách hàng cũ
+                    </button>
+
+                    <input type="hidden" th:field="*{customerDTO.customerId}" id="customerId">
+
+                    <div class="customer-grid">
+                        <div>
+                            <div class="mb-3">
+                                <label for="customerName" class="form-label">Tên Khách Hàng <span class="required-asterisk">*</span></label>
+                                <input type="text" class="form-control" id="customerName" name="customerName" th:field="*{customerDTO.customerName}" required>
+                                <div class="showSelectCustomer"></div>
+                                <p class="error" th:if="${#fields.hasErrors('customerDTO.customerName')}" th:errors="*{customerDTO.customerName}"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerPhoneNumber" class="form-label">Số điện thoại <span class="required-asterisk">*</span></label>
+                                <input type="text" class="form-control" id="customerPhoneNumber" name="customerPhoneNumber" th:field="*{customerDTO.phoneNumber}" required>
+                                <p class="error" th:if="${#fields.hasErrors('customerDTO.phoneNumber')}" th:errors="*{customerDTO.phoneNumber}"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerEmail" class="form-label">Email <span class="required-asterisk">*</span></label>
+                                <input type="email" class="form-control" id="customerEmail" name="customerEmail" th:field="*{customerDTO.email}" required>
+                                <p class="error" th:if="${#fields.hasErrors('customerDTO.email')}" th:errors="*{customerDTO.email}"></p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="mb-3">
+                                <label for="customerAddress" class="form-label">Địa chỉ <span class="required-asterisk">*</span></label>
+                                <input type="text" class="form-control" id="customerAddress" name="customerAddress" th:field="*{customerDTO.address}" required>
+                                <p class="error" th:if="${#fields.hasErrors('customerDTO.address')}" th:errors="*{customerDTO.address}"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerBirthdate" class="form-label">Ngày sinh</label>
+                                <input type="date" class="form-control" id="customerBirthdate" name="customerBirthdate" th:field="*{customerDTO.birthDate}">
+                                <p class="error" th:if="${#fields.hasErrors('customerDTO.birthDate')}" th:errors="*{customerDTO.birthDate}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin sản phẩm -->
+            <!-- Thông tin sản phẩm -->
+            <div class="section-card" id="productContainer">
+                <div class="section-header">
+                    <i class="fas fa-box-open"></i>
+                    <h5>Thông Tin Sản Phẩm</h5>
+                </div>
+                <div class="section-body">
+                    <div th:each="entry,stat : *{productOrderDTOList}" class="productList">
+                        <div class="productContainer">
+                            <div class="product-header">
+                                <h6 class="product-title">Chi tiết sản phẩm</h6>
+                                <div class="product-actions">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="selectProduct(this)">
+                                        <i class="fas fa-search me-1"></i> Chọn sản phẩm
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeProductList(this);calculateTotal()">
+                                        <i class="fas fa-trash me-1"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+
+                            <input type="hidden" class="productSelectId" id="productId" th:field="*{productOrderDTOList[__${stat.index}__].productId}">
+
+                            <div class="product-info" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên sản phẩm <span class="required-asterisk">*</span></label>
+                                    <input type="text" class="form-control productName" id="productName" name="productName" th:field="*{productOrderDTOList[__${stat.index}__].productName}" required readOnly>
+                                    <div class="showSelectProduct"></div>
+                                    <p class="error" th:if="${#fields.hasErrors('productOrderDTOList[__${stat.index}__].productName')}" th:errors="*{productOrderDTOList[__${stat.index}__].productName}"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Số lượng <span class="required-asterisk">*</span></label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-outline-secondary decreaseQty" onclick="decreaseQuantity(this)">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input onchange="validateQuantity(this);calculateTotal()" type="number" class="form-control productQuantity text-center" id="quantity" name="quantity" th:field="*{productOrderDTOList[__${stat.index}__].quantity}" required min="1" value="1">
+                                        <button type="button" class="btn btn-outline-secondary increaseQty" onclick="increaseQuantity(this)">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <p class="error" th:if="${#fields.hasErrors('productOrderDTOList[__${stat.index}__].quantity')}" th:errors="*{productOrderDTOList[__${stat.index}__].quantity}"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Giá / sản phẩm <span class="required-asterisk">*</span></label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control productPrice" name="productPrice" th:field="*{productOrderDTOList[__${stat.index}__].priceIndex}" required readOnly>
+                                        <span class="input-group-text">VND</span>
+                                    </div>
+                                    <p class="error" th:if="${#fields.hasErrors('productOrderDTOList[__${stat.index}__].priceIndex')}" th:errors="*{productOrderDTOList[__${stat.index}__].priceIndex}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" id="addProductList">
+                        <i class="fas fa-plus-circle me-1"></i> Thêm sản phẩm
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tổng tiền và thanh toán -->
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-cash-register"></i>
+                    <h5>Thanh Toán</h5>
+                </div>
+                <div class="section-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="total" class="form-label">Tổng tiền:</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="total" name="total" readonly>
+                                    <span class="input-group-text">VND</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="paymentMethod" class="form-label">Hình thức thanh toán <span class="required-asterisk">*</span></label>
+                                <select class="form-select" id="paymentMethod" th:field="*{paymentMethod}" required>
+                                    <option value="0">-- Chọn phương thức --</option>
+                                    <option value="1">Chuyển khoản</option>
+                                    <option value="2">Tiền mặt</option>
+                                </select>
+                                <p class="error" th:if="${#fields.hasErrors('paymentMethod')}" th:errors="*{paymentMethod}"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="defaultCheck1" th:field="*{isPrintInvoice}">
+                        <label class="form-check-label" for="defaultCheck1">
+                            In hóa đơn
+                        </label>
+                        <p class="error" th:if="${#fields.hasErrors('isPrintInvoice')}" th:errors="*{isPrintInvoice}"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút bấm -->
+            <div class="submit-area">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check-circle me-1"></i> Thanh toán và Hoàn tất
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+<script th:src="@{/js/admin/header.js}" type="text/javascript"></script>
+<script th:src="@{/js/admin/layout.js}"></script>
+<script th:src="@{/js/admin/order.js}"></script>
+<script th:src="@{/js/admin/sidebarActiveMenu.js}" defer></script>
+<script>
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+<script th:src="@{/js/admin/header.js}" type="text/javascript"></script>
+<script th:src="@{/js/admin/layout.js}"></script>
+<script th:src="@{/js/admin/order.js}"></script>
+<script th:src="@{/js/admin/sidebarActiveMenu.js}" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
+            sessionStorage.clear();
+            localStorage.clear();
+            console.log("Reloaded");
+        }
+
+        // Initialize the form
+        if($('.productList').length > 1){
+            // Remove all after first
+            $('.productList').slice(1).remove();
+        }
+
+        // Calculate initial total
+        calculateTotal();
+
+        // Check for selected customer data
+        let selectedCustomer;
+        if(localStorage.getItem("selectedCustomer") == null && sessionStorage.getItem("selectedNewCustomer") == null){
+            selectedCustomer = sessionStorage.getItem("selectedCustomer");
+        } else if(sessionStorage.getItem("selectedNewCustomer") != null && localStorage.getItem("selectedCustomer") == null){
+            selectedCustomer = sessionStorage.getItem("selectedNewCustomer");
+            // Clear session
+            sessionStorage.removeItem("selectedNewCustomer");
+        } else {
+            selectedCustomer = localStorage.getItem("selectedCustomer");
+        }
+
+        if (selectedCustomer) {
+            let customer = JSON.parse(selectedCustomer);
+            // Display data on form
+            document.getElementById("customerId").value = customer.id;
+            document.getElementById("customerName").value = customer.name;
+            document.getElementById("customerPhoneNumber").value = customer.phone;
+            document.getElementById("customerAddress").value = customer.address;
+            document.getElementById("customerEmail").value = customer.email;
+            document.getElementById("customerBirthdate").value = customer.birthdate;
+
+            // Delete data from localStorage after use
+            localStorage.removeItem("selectedCustomer");
+            // Add to session
+            sessionStorage.setItem("selectedCustomer", JSON.stringify(customer));
+
+            // Set readonly if customer ID exists
+            if (customer.id) {
+                document.getElementById("customerName").readOnly = true;
+                document.getElementById("customerPhoneNumber").readOnly = true;
+                document.getElementById("customerAddress").readOnly = true;
+                document.getElementById("customerEmail").readOnly = true;
+                document.getElementById("customerBirthdate").readOnly = true;
+            }
+        }
+
+        // Check for selected product data
+        let selectedProduct;
+        if(localStorage.getItem("selectedProduct") == null){
+            selectedProduct = sessionStorage.getItem("selectedProduct");
+        } else {
+            selectedProduct = localStorage.getItem("selectedProduct");
+        }
+
+        if (selectedProduct) {
+            let products = JSON.parse(selectedProduct);
+            let j = 0;
+            let appendData = $();
+            for (let product of products) {
+                let productContainer = $('.productContainer').first().clone();
+
+                // Add product container and get data responsive
+                productContainer.find('.productSelectId').val(product.productId);
+                productContainer.find('.productName').val(product.productName);
+                productContainer.find('.productPrice').val(product.productPrice);
+                productContainer.find('.productQuantity').val(product.quantity);
+
+                // Show the product info section once product is selected
+                productContainer.find('.product-info').show();
+
+                productContainer.find('input, select, button').each(function() {
+                    let oldName = $(this).attr('name');
+                    if (oldName) {
+                        let newName = oldName.replace(/\[\d+\]/, '[' + j + ']');
+                        $(this).attr('name', newName);
+                    }
+                });
+                appendData = appendData.add(productContainer);
+
+                let index = ++j;
+            }
+            $('.productList').html(appendData);
+
+            appendData = $();
+
+            // Clear localStorage
+            localStorage.removeItem("selectedProduct");
+
+            // Add to session
+            sessionStorage.setItem("selectedProduct", JSON.stringify(products));
+
+            // Calculate total
+            calculateTotal();
+            updateDisplayTotal();
+        }
+
+        // Event listeners
+        $('#selectCustomerBtn').on('click', function() {
+            window.location.href = "/Admin/order/showListCustomer";
+        });
+
+        $('#addProductList').on('click', function() {
+            let lastIndex = $('.productContainer').length - 1;
+            let newIndex = lastIndex + 1;
+
+            let productContainer = $('.productContainer').first().clone();
+            productContainer.find('input').val('');
+            productContainer.find('.showSelectProduct').empty();
+
+            // Keep product details hidden until product is selected
+            productContainer.find('.product-info').hide();
+
+            productContainer.find('input, select, button').each(function() {
+                let oldName = $(this).attr('name');
+                let oldId = $(this).attr('id');
+
+                if (oldName) {
+                    let newName = oldName.replace(/\[\d+\]/, '[' + newIndex + ']');
+                    $(this).attr('name', newName);
+                }
+                if (oldId) {
+                    let newId = oldId.replace(/\d+/, newIndex);
+                    $(this).attr('id', newId);
+                }
+            });
+
+            $('.productList').append(productContainer);
+        });
+
+        // Toggle sidebar if exists
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-collapsed');
+            });
+        }
+
+        // Reset customer ID if customer info changes
+        $('#customerInfo').find('input').on('change', function() {
+            $('#customerId').val('');
+            $(this).removeAttr('readonly');
+        });
+
+        // Hide dropdown menus when clicking elsewhere
+        $(document).on('click', function() {
+            $('.showSelectCustomer').empty();
+            $('.showSelectProduct').empty();
+        });
+
+        // Form submission handling
+        $("#orderForm").submit(function(event) {
+            event.preventDefault();
+            let formData = $(this).serialize();
+            $.post({
+                url: "/Admin/order/create",
+                data: formData,
+                success: function(response) {
+                    response = JSON.parse(response);
+                    if (response.isPrintInvoice) {
+                        window.open("/Admin/order/downloadInvoicePdf?orderId=" + response.orderId, "_blank");
+                    }
+
+                    if(response.paymentMethod == 1){
+                        // Redirect to QR code payment page instead of VNPay
+                        window.location.href = "/Admin/payment/qr-code?orderId=" + response.orderId;
+                    } else {
+                        // For cash payment, just redirect to customers page
+                        window.location.href = "/Admin/customers";
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 400) {
+                        let errors = xhr.responseJSON;
+                        console.log(errors);
+                        $(".error-message").remove(); // Remove old errors
+
+                        for (let field in errors) {
+                            let errorMessage = "<span class='error-message' style='color:red'>" + errors[field] + "</span>";
+                            $('input[name="' + field + '"], select[name="' + field + '"], textarea[name="' + field + '"]').after(errorMessage);
+                        }
+                    } else {
+                        alert("Lỗi khi gửi yêu cầu!");
+                    }
+                }
+            });
+        });
+    });
+
+    // Functions to increase and decrease quantity
+    function increaseQuantity(button) {
+        const input = $(button).siblings('input.productQuantity');
+        let value = parseInt(input.val()) || 0;
+        input.val(value + 1);
+        calculateTotal();
+        updateDisplayTotal();
+    }
+
+    function decreaseQuantity(button) {
+        const input = $(button).siblings('input.productQuantity');
+        let value = parseInt(input.val()) || 0;
+        if (value > 1) {
+            input.val(value - 1);
+            calculateTotal();
+            updateDisplayTotal();
+        }
+    }
+
+    // Ensure quantity doesn't go below 1
+    function validateQuantity(input) {
+        let value = parseInt($(input).val());
+        if (isNaN(value) || value < 1) {
+            $(input).val(1);
+        }
+        updateDisplayTotal();
+    }
+
+    // Calculate total price
+    function calculateTotal() {
+        let total = 0;
+        $('.productContainer').each(function() {
+            let quantity = $(this).find('input[name$="quantity"]').val() || 0;
+            let price = $(this).find('.productPrice').val() || 0;
+            total += quantity * price;
+        });
+        $('#total').val(total);
+        updateDisplayTotal();
+    }
+
+    // Update the display total with formatting
+    function updateDisplayTotal() {
+        let total = $('#total').val() || 0;
+        $('#display-total').text(formatCurrency(total));
+    }
+
+    // Format currency with commas
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN').format(amount);
+    }
+
+    // Select product function
+    function selectProduct(input) {
+        // Save new customer data
+        let customerId = $('#customerId').val();
+        if (customerId == "") {
+            let customerName = $('#customerName').val();
+            let customerPhoneNumber = $('#customerPhoneNumber').val();
+            let customerAddress = $('#customerAddress').val();
+            let customerEmail = $('#customerEmail').val();
+            let customerBirthdate = $('#customerBirthdate').val();
+            let customerData = {
+                id: customerId,
+                name: customerName,
+                phone: customerPhoneNumber,
+                address: customerAddress,
+                email: customerEmail,
+                birthdate: customerBirthdate
+            };
+            sessionStorage.setItem("selectedNewCustomer", JSON.stringify(customerData));
+        }
+
+        let prouctIdAndQuantity = [];
+        $('.productContainer').each(function() {
+            let productIdAndQuantityEach = $(this).find('.productSelectId').val() + '.' + $(this).find('.productQuantity').val();
+            if (!($(this).find('.productSelectId').val() == "")) {
+                prouctIdAndQuantity.push(productIdAndQuantityEach);
+            }
+        });
+        let productIdAndQuantityToString = prouctIdAndQuantity.join('-');
+        console.log(productIdAndQuantityToString);
+
+        window.location.href = "/Admin/order/showListProduct" + "?oldData=" + productIdAndQuantityToString;
+    }
+
+    // Remove product from list
+    function removeProductList(button) {
+        let allProduct = $('.productContainer');
+        if (allProduct.length > 1) {
+            let productContainer = $(button).closest('.productContainer');
+            let productIdToRemove = Number($(button).closest('.productContainer').find('.productSelectId').val());
+
+            // Remove from UI
+            productContainer.remove();
+
+            // Update name & id after removal
+            $('.productContainer').each(function(index) {
+                $(this).find('input, select').each(function() {
+                    let oldName = $(this).attr('name');
+                    let oldId = $(this).attr('id');
+
+                    if (oldName) {
+                        let newName = oldName.replace(/\[\d+\]/, '[' + index + ']');
+                        $(this).attr('name', newName);
+                    }
+
+                    if (oldId) {
+                        let newId = oldId.replace(/\d+/, index);
+                        $(this).attr('id', newId);
+                    }
+                });
+            });
+
+            // Remove from sessionStorage
+            let selectedProducts = JSON.parse(sessionStorage.getItem("selectedProduct")) || [];
+            selectedProducts = selectedProducts.filter(product => Number(product.productId) !== productIdToRemove);
+            sessionStorage.setItem("selectedProduct", JSON.stringify(selectedProducts));
+            console.log(sessionStorage.getItem("selectedProduct"));
+
+            // Update total price
+            calculateTotal();
+            updateDisplayTotal();
+        } else {
+            alert('Không thể xóa sản phẩm cuối cùng');
+        }
+    }
+
+    // Handle customer selection
+    $(document).on("click", ".customerSelect", function() {
+        localStorage.setItem("customerId", $(this).attr("data-id"));
+        localStorage.setItem("customerName", $(this).text());
+        localStorage.setItem("customerPhonenumber", $(this).attr("data-phone"));
+        localStorage.setItem("customerAddress", $(this).attr("data-address"));
+        localStorage.setItem("customerEmail", $(this).attr("data-email"));
+        localStorage.setItem("customerBirthdat", $(this).attr("data-birthdate"));
+    });
+</script>
+</body>
+</html>

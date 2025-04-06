@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" th:href="@{/css/login.css}">
+  <title>Đăng nhập - Electronics Store</title>
+</head>
+<body>
+<div class="logo-container">
+  <img th:src="@{/images/logo/logo.png}" alt="Logo">
+</div>
+
+<div class="scroll-down">Kéo xuống để đăng nhập
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <path d="M16 3C8.832031 3 3 8.832031 3 16s5.832031 13 13 13 13-5.832031 13-13S23.167969 3 16 3zm0 2c6.085938 0 11 4.914063 11 11 0 6.085938-4.914062 11-11 11-6.085937 0-11-4.914062-11-11C5 9.914063 9.914063 5 16 5zm-1 4v10.28125l-4-4-1.40625 1.4375L16 23.125l6.40625-6.40625L21 15.28125l-4 4V9z"/>
+  </svg>
+</div>
+
+<div class="container">
+  <div class="overlay"></div>
+</div>
+
+<div class="modal">
+  <div class="modal-container">
+    <div class="modal-left">
+      <div class="logo-in-modal">
+        <h2>Electronics Store</h2>
+      </div>
+      <h1 class="modal-title">Xin chào!</h1>
+      <br>
+      <form name="f" th:action="@{/login}" method="POST">
+        <div class="input-block">
+          <label class="input-label">Tên đăng nhập</label>
+          <input type="text" name="username" placeholder="Tên đăng nhập">
+        </div>
+        <div class="input-block">
+          <label class="input-label">Mật khẩu</label>
+          <input type="password" name="password" placeholder="Mật khẩu">
+        </div>
+
+        <div class="modal-buttons">
+          <button class="input-button" name="submit" type="submit" value="submit">Đăng nhập</button>
+        </div>
+      </form>
+    </div>
+    <div class="modal-right">
+      <img th:src="@{/images/logo/logo.png}" alt="Logo">
+    </div>
+  </div>
+  <button class="modal-button">Đăng nhập</button>
+</div>
+
+<script th:src="@{/js/login.js}"></script>
+</body>
+</html>

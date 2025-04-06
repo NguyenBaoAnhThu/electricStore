@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê chi tiết sản phẩm</title>
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/header.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/tablelayout.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Header Fragment -->
+<div th:replace="~{admin/fragments/header :: header}"></div>
+<!-- Sidebar Fragment -->
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+
+<main class="main-content">
+    <div class="wrapper">
+        <h1 class="tittle">Chi tiết sản phẩm</h1>
+
+        <!-- Breadcrumb and Return Button -->
+        <div class="form-mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a th:href="@{/Admin/statistical}">Thống kê</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            Chi tiết sản phẩm
+                            <span th:if="${day != null}" th:text="'- ' + ${day}"></span>
+                            <span th:if="${month != null}" th:text="'/' + ${month}"></span>
+                            <span th:text="'/' + ${year}"></span>
+                        </li>
+                    </ol>
+                </nav>
+                <a th:href="@{/Admin/statistical(type=${type}, day=${day}, month=${month}, year=${year})}"
+                   class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+            <hr style="border: 1px solid #e9ecef; margin: 20px 0;">
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="card-title">Tổng sản phẩm</h6>
+                        <p class="card-text text-primary fw-bold" th:text="${totalStockProducts}"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="card-title">Tổng số lượng sản phẩm bán</h6>
+                        <p class="card-text text-success fw-bold" th:text="${totalProductsSales}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Data Alert -->
+        <div th:if="${products.content.isEmpty()}">
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <span>Chưa có dữ liệu sản phẩm nào!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                <tr>
+                    <th>Tên sản phẩm</th>
+                    <th>Loại</th>
+                    <th>Thương hiệu</th>
+                    <th>Nhà cung cấp</th>
+                    <th>Số lượng bán</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${products}">
+                    <td th:text="${product.productName}"></td>
+                    <td th:text="${product.brand}"></td>
+                    <td th:text="${product.category}"></td>
+                    <td th:text="${product.supplier}"></td>
+                    <td th:text="${product.stock}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div></div> <!-- Placeholder to maintain layout -->
+            <nav aria-label="Page navigation" >
+                <ul class="pagination m-0">
+                    <!-- First page button -->
+                    <li class="page-item" th:classappend="${page == 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/Admin/statistical/products/detail(type=${type}, day=${day}, month=${month}, year=${year}, page=1, size=${size})}"
+                           aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Previous page button -->
+                    <li class="page-item" th:classappend="${page == 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/Admin/statistical/products/detail(type=${type}, day=${day}, month=${month}, year=${year}, page=${page - 1}, size=${size})}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Current page indicator -->
+                    <li class="page-item disabled">
+            <span class="page-link">
+              <span th:text="${page}"></span> / <span th:text="${products.totalPages}"></span>
+            </span>
+                    </li>
+
+                    <!-- Next page button -->
+                    <li class="page-item" th:classappend="${page >= products.totalPages} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/Admin/statistical/products/detail(type=${type}, day=${day}, month=${month}, year=${year}, page=${page + 1}, size=${size})}"
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Last page button -->
+                    <li class="page-item" th:classappend="${page >= products.totalPages} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/Admin/statistical/products/detail(type=${type}, day=${day}, month=${month}, year=${year}, page=${products.totalPages}, size=${size})}"
+                           aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+
+<!-- Footer Fragment -->
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+
+<!-- Scripts -->
+<script th:src="@{/js/admin/layout.js}"></script>
+<script th:src="@{/js/admin/sidebarActiveMenu.js}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:fragment="sidebarScript">
+    // Toggle sidebar
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-collapsed');
+    });
+</script>
+</body>
+</html>

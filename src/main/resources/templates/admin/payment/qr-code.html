@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán Chuyển Khoản</title>
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/header.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/layout.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --shop-red: #D10024;
+            --shop-red-hover: #bb2d3b;
+            --shop-light-bg: #f8f9fa;
+            --shop-border: #e9ecef;
+            --shop-light-red: rgba(209, 0, 36, 0.05);
+            --shop-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 70px;
+        }
+
+        .payment-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shop-shadow);
+            overflow: hidden;
+        }
+
+        .payment-header {
+            background: linear-gradient(135deg, var(--shop-red) 0%, #ff3e4b 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .payment-header h2 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .payment-body {
+            padding: 30px;
+        }
+
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .qr-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .qr-code {
+            width: 250px;
+            height: 250px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .bank-details {
+            background-color: var(--shop-light-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .bank-details h4 {
+            color: var(--shop-red);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--shop-border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .copy-btn {
+            background-color: var(--shop-light-bg);
+            border: 1px solid var(--shop-border);
+            color: #555;
+            font-size: 14px;
+            padding: 2px 8px;
+            margin-left: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: #e9ecef;
+        }
+
+        .order-summary {
+            background-color: var(--shop-light-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .order-summary h4 {
+            color: var(--shop-red);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .payment-footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            background-color: var(--shop-light-bg);
+            border-top: 1px solid var(--shop-border);
+        }
+
+        .btn-primary {
+            background-color: var(--shop-red);
+            border-color: var(--shop-red);
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--shop-red-hover);
+            border-color: var(--shop-red-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #ced4da;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+        }
+
+        .timer-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--shop-red);
+        }
+
+        .payment-status {
+            background-color: #fff8e1;
+            color: #ff8f00;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .note-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--shop-red);
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+
+            .payment-body {
+                padding: 20px;
+            }
+
+            .qr-code {
+                width: 200px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{admin/fragments/header :: header}"></div>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+<main class="main-content">
+    <div class="payment-container">
+        <div class="payment-header">
+            <h2><i class="fas fa-qrcode me-2"></i> Thanh Toán Chuyển Khoản</h2>
+        </div>
+
+        <div class="payment-body">
+            <div class="payment-status">
+                <i class="fas fa-clock me-2"></i> Đang chờ thanh toán
+            </div>
+
+            <div class="timer-section">
+                <p>Vui lòng hoàn tất thanh toán trong:</p>
+                <div class="timer" id="countdown">10:00</div>
+            </div>
+
+            <div class="qr-section">
+                <div class="qr-container">
+                    <div class="qr-code">
+                        <!-- QR code will be inserted here -->
+                        <img src="/api/placeholder/250/250" alt="QR Code thanh toán" />
+                    </div>
+                </div>
+                <p>Quét mã QR bằng ứng dụng ngân hàng để thanh toán</p>
+            </div>
+
+            <div class="bank-details">
+                <h4><i class="fas fa-university me-2"></i>Thông Tin Chuyển Khoản</h4>
+
+                <div class="detail-row">
+                    <div class="detail-label">Ngân hàng:</div>
+                    <div class="detail-value">
+                        Vietcombank <button class="copy-btn" onclick="copyToClipboard('Vietcombank')"><i class="far fa-copy"></i></button>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Số tài khoản:</div>
+                    <div class="detail-value">
+                        1234567890123 <button class="copy-btn" onclick="copyToClipboard('1234567890123')"><i class="far fa-copy"></i></button>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Chủ tài khoản:</div>
+                    <div class="detail-value">
+                        CÔNG TY TNHH ABC XYZ <button class="copy-btn" onclick="copyToClipboard('CÔNG TY TNHH ABC XYZ')"><i class="far fa-copy"></i></button>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Số tiền:</div>
+                    <div class="detail-value">
+                        <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">500,000</span> VND
+                        <button class="copy-btn" onclick="copyToClipboard('500000')"><i class="far fa-copy"></i></button>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Nội dung chuyển khoản:</div>
+                    <div class="detail-value">
+                        <span th:text="${'THANH TOAN DH ' + order.orderId}">THANH TOAN DH #12345</span>
+                        <button class="copy-btn" onclick="copyToClipboard('THANH TOAN DH #12345')"><i class="far fa-copy"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-summary">
+                <h4><i class="fas fa-file-invoice me-2"></i>Thông Tin Đơn Hàng</h4>
+
+                <div class="detail-row">
+                    <div class="detail-label">Mã đơn hàng:</div>
+                    <div class="detail-value" th:text="${order.orderId}">#12345</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Khách hàng:</div>
+                    <div class="detail-value" th:text="${order.customerName}">Nguyễn Văn A</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Số điện thoại:</div>
+                    <div class="detail-value" th:text="${order.customerPhone}">0987654321</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Tổng tiền:</div>
+                    <div class="detail-value">
+                        <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">500,000</span> VND
+                    </div>
+                </div>
+            </div>
+
+            <div class="note-section">
+                <h5><i class="fas fa-info-circle me-2"></i>Lưu ý:</h5>
+                <ul>
+                    <li>Vui lòng nhập chính xác nội dung chuyển khoản</li>
+                    <li>Đơn hàng sẽ được xác nhận sau khi chúng tôi nhận được thanh toán</li>
+                    <li>Nếu cần hỗ trợ, vui lòng liên hệ: <strong>support@example.com</strong> hoặc <strong>1900 1234</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="payment-footer">
+            <button class="btn btn-outline-secondary" onclick="window.location.href='/Admin/customers'">
+                <i class="fas fa-arrow-left me-2"></i> Quay lại
+            </button>
+            <button class="btn btn-primary" id="checkPaymentBtn">
+                <i class="fas fa-sync-alt me-2"></i> Kiểm tra thanh toán
+            </button>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+
+<script th:src="@{/js/admin/header.js}" type="text/javascript"></script>
+<script th:src="@{/js/admin/layout.js}"></script>
+<script>
+    // Countdown timer
+    function startTimer(duration, display) {
+        let timer = duration, minutes, seconds;
+        let countdown = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = minutes + ":" + seconds;
+
+            if (--timer < 0) {
+                clearInterval(countdown);
+                display.textContent = "00:00";
+                alert("Thời gian thanh toán đã hết. Vui lòng tạo đơn hàng mới.");
+                window.location.href = "/Admin/order/create";
+            }
+        }, 1000);
+    }
+
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert("Đã sao chép: " + text);
+        }, function() {
+            alert("Không thể sao chép văn bản");
+        });
+    }
+
+    // Check payment status
+    document.getElementById('checkPaymentBtn').addEventListener('click', function() {
+        // Here you would typically make an AJAX call to check payment status
+        // For demo purposes, we'll just show an alert
+        alert("Đang kiểm tra trạng thái thanh toán...");
+
+        // Simulate payment verification
+        setTimeout(function() {
+            alert("Thanh toán đã được xác nhận! Đơn hàng của bạn đang được xử lý.");
+            window.location.href = "/Admin/customers";
+        }, 2000);
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Start countdown - 10 minutes
+        let tenMinutes = 60 * 10;
+        let display = document.querySelector('#countdown');
+        startTimer(tenMinutes, display);
+
+        // Toggle sidebar if exists
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-collapsed');
+            });
+        }
+    });
+</script>
+</body>
+</html>

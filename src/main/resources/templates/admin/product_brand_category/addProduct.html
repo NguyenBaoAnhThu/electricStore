@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Sản Phẩm</title>
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/header.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/tablelayout.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Nunito', sans-serif;
+        }
+        .wrapper {
+            padding: 20px;
+        }
+        .tittle {
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .card-header {
+            background-color: #D10024;
+            border-radius: 8px 8px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .form-control, .form-select {
+            height: 45px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            padding: 10px 15px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #D10024;
+            box-shadow: 0 0 0 0.25rem rgba(209, 0, 36, 0.25);
+        }
+        textarea.form-control {
+            height: auto;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+        .btn-danger {
+            background-color: #D10024;
+            border-color: #D10024;
+        }
+        .btn-danger:hover {
+            background-color: #bb0000;
+            border-color: #bb0000;
+        }
+        #imagePreview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #imagePreview img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            padding: 3px;
+        }
+        .section-title {
+            font-weight: 600;
+            margin: 20px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+            color: #333;
+        }
+        .text-danger {
+            color: #D10024 !important;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{admin/fragments/header :: header}"></div>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+<main class="main-content" th:fragment="content">
+    <div class="wrapper">
+        <h1 class="tittle">Thêm Sản Phẩm Mới</h1>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="fas fa-box me-2"></i> Thông tin sản phẩm</h5>
+                <a th:href="@{/Admin/product-manager}" class="btn btn-sm btn-light">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </a>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/Admin/product-manager/add}" method="post" th:object="${product}" enctype="multipart/form-data">
+
+                    <!-- Upload Ảnh -->
+                    <div class="mb-3">
+                        <label class="form-label">Ảnh Sản Phẩm</label>
+                        <input type="file" name="files" multiple accept="image/*" class="form-control" id="imageUpload">
+                        <!-- Hiển thị lỗi nếu ảnh không hợp lệ -->
+<!--                        <div class="text-danger" th:if="${#fields.hasErrors('images')}" th:errors="*{images}"></div>-->
+                        <input type="hidden" name="imagePaths" id="imagePaths" th:field="*{mainImageUrl}">
+                        <div id="imagePreview" class="mt-2">
+                                <img th:src="${mainImageUrl}" class="img-preview" >
+                        </div>
+                    </div>
+
+                    <!-- Thông tin cơ bản -->
+                    <h5 class="section-title"><i class="fas fa-info-circle me-2"></i> Thông Tin Cơ Bản</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tên Sản Phẩm</label>
+                                <input type="text" class="form-control" th:field="*{name}" required placeholder="Nhập tên sản phẩm">
+                                <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Giá</label>
+                                <input id="productPrice_01" type="number" class="form-control" th:field="*{price}" required placeholder="Nhập giá sản phẩm">
+                                <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                     //document ready
+                        $(document).ready(function(){
+
+                            $('#productPrice_01').each(function() {
+                                var value = $(this).val();
+
+
+                                if (value.match(/e\+?(\d+)/i)) {
+
+                                    value = Number(value).toFixed(0);
+                                    $(this).val(value);
+                                }
+                            });
+                        });
+
+                    </script>
+
+                    <!-- Danh mục & Thương hiệu -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Danh mục</label>
+                                <select class="form-select" th:field="*{categoryId}" required>
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <option th:each="c : ${categories}" th:value="${c.categoryID}" th:text="${c.name}"></option>
+                                </select>
+                                <div class="text-danger" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Thương hiệu</label>
+                                <select class="form-select" th:field="*{brandId}" required>
+                                    <option value="">-- Chọn thương hiệu --</option>
+                                    <option th:each="b : ${brands}" th:value="${b.brandID}" th:text="${b.name}"></option>
+                                </select>
+                                <div class="text-danger" th:if="${#fields.hasErrors('brandId')}" th:errors="*{brandId}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Nhà cung cấp</label>
+                                <select class="form-select" th:field="*{id}" required>
+                                    <option value="">-- Chọn nhà cung cấp --</option>
+                                    <option th:each="a : ${suppliers}" th:value="${a.id}" th:text="${a.name}"></option>
+                                </select>
+                                <div class="text-danger" th:if="${#fields.hasErrors('id')}" th:errors="*{id}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mô tả -->
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả sản phẩm</label>
+                        <textarea class="form-control" th:field="*{description}" rows="3" required placeholder="Mô tả sản phẩm"></textarea>
+                        <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                    </div>
+
+                    <!-- Thông tin chi tiết -->
+                    <h5 class="section-title"><i class="fas fa-microchip me-2"></i> Thông Tin Kỹ Thuật</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">CPU</label>
+                                <input type="text" class="form-control" th:field="*{cpu}" required placeholder="Ví dụ: Snapdragon 8 Gen 2">
+                                <div class="text-danger" th:if="${#fields.hasErrors('cpu')}" th:errors="*{cpu}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">RAM</label>
+                                <input type="text" class="form-control" th:field="*{ram}" required placeholder="Ví dụ: 8GB">
+                                <div class="text-danger" th:if="${#fields.hasErrors('ram')}" th:errors="*{ram}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">ROM</label>
+                                <input type="text" class="form-control" th:field="*{rom}" required placeholder="Ví dụ: 256GB">
+                                <div class="text-danger" th:if="${#fields.hasErrors('rom')}" th:errors="*{rom}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Pin</label>
+                                <input type="text" class="form-control" th:field="*{battery}" required placeholder="Ví dụ: 5000mAh">
+                                <div class="text-danger" th:if="${#fields.hasErrors('battery')}" th:errors="*{battery}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Màu sắc</label>
+                                <input type="text" class="form-control" th:field="*{color}" required placeholder="Ví dụ: Đen, Trắng, Xanh">
+                                <div class="text-danger" th:if="${#fields.hasErrors('color')}" th:errors="*{color}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Camera (MP)</label>
+                                <input type="number" class="form-control" th:field="*{camera}" required placeholder="Ví dụ: 48">
+                                <div class="text-danger" th:if="${#fields.hasErrors('camera')}" th:errors="*{camera}"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Kích thước màn hình</label>
+                                <input type="number" class="form-control" th:field="*{screenSize}" required placeholder="Ví dụ: 6.7">
+                                <div class="text-danger" th:if="${#fields.hasErrors('screenSize')}" th:errors="*{screenSize}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <a th:href="@{/Admin/product-manager}" class="btn btn-secondary me-2">
+                            <i class="fas fa-times me-1"></i> Hủy
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Lưu Sản Phẩm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+
+<!-- JavaScript Preview Image -->
+<script>
+    document.getElementById("imageUpload").addEventListener("change", function(event) {
+        let previewImg = document.querySelector("#imagePreview img");
+        let imagePathsInput = document.getElementById("imagePaths");
+
+        if (event.target.files.length > 0) {
+            let file = event.target.files[0];
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imagePathsInput.value = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+
+</script>
+
+<script th:src="@{/js/admin/layout.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/admin/header.js}" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:fragment="sidebarScript">
+    // Toggle sidebar
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-collapsed');
+    });
+</script>
+</body>
+</html>

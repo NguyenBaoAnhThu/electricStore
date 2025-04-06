@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Doanh Thu</title>
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/header.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/fragments/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/layout/tablelayout.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Alert and search container styles from warehouse management */
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-form {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-form .form-group {
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .search-form .form-label {
+            margin-bottom: 0;
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .search-form .form-control,
+        .search-form .form-select {
+            height: 38px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+            min-width: 120px;
+        }
+
+        .search-form .btn-search {
+            height: 38px;
+            background-color: #D10024;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-form .btn-search:hover {
+            background-color: #b80020;
+            box-shadow: 0 2px 5px rgba(209, 0, 36, 0.3);
+        }
+
+        /* Card and chart styles */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .chart-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{admin/fragments/header :: header}"></div>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+
+<main class="main-content" th:fragment="content">
+    <div class="wrapper">
+        <h1 class="tittle">Thống kê bán hàng</h1>
+
+        <div class="warehouse-manager-search mb-4">
+            <div class="search-container p-4 bg-white rounded-3 shadow">
+                <form class="row w-100 align-items-end" id="filterForm">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-secondary small mb-1">Tháng</label>
+                        <select class="form-select border-0 bg-light py-2" name="month" id="monthSelect">
+                            <option value="">Chọn tháng</option>
+                            <script>
+                                for (let i = 1; i <= 12; i++) {
+                                    document.write(`<option value="${i}">Tháng ${i}</option>`);
+                                }
+                            </script>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-secondary small mb-1">Năm</label>
+                        <select class="form-select border-0 bg-light py-2" name="year" id="yearSelect">
+                            <option value="">Chọn năm</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-danger w-100 py-2 shadow-sm" type="submit">
+                            <i class="fas fa-search me-1"></i> Lọc
+                        </button>
+                    </div>
+                </form>
+
+                <div class="d-flex w-100 justify-content-between align-items-center mt-4">
+                    <div class="d-flex gap-2">
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle shadow-sm" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-filter me-1"></i> Chọn bộ lọc
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                                <li><a class="dropdown-item" href="/Admin/statistical?type=day">Ngày</a></li>
+                                <li><a class="dropdown-item" href="/Admin/statistical?type=month">Tháng</a></li>
+                                <li><a class="dropdown-item" href="/Admin/statistical?type=year">Năm</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p id="dateMessage" class="text-primary fw-bold mb-0"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-container">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title"></h5>
+                    <a id="revenue-detail" href="#" class="text-white">Chi tiết →</a>
+                </div>
+            </div>
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title"></h5>
+                    <a id="orders-detail" href="#" class="text-white">Chi tiết →</a>
+                </div>
+            </div>
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title"></h5>
+                    <a id="products-detail" href="#" class="text-white">Chi tiết →</a>
+                </div>
+            </div>
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title"></h5>
+                    <a id="orders-cancel-detail" href="#" class="text-white">Chi tiết →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i> Biểu đồ doanh thu
+                </div>
+                <div class="card-body">
+                    <canvas id="areaChart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i> Top sản phẩm bán chạy
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+
+<script th:src="@{/js/admin/layout.js}"></script>
+<script th:src="@{/js/admin/header.js}" type="text/javascript"></script>
+<script th:src="@{/js/admin/sidebarActiveMenu.js}" defer></script>
+<script th:fragment="sidebarScript">
+    // Toggle sidebar
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-collapsed');
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date();
+        const monthSelect = document.getElementById("monthSelect");
+        const yearSelect = document.getElementById("yearSelect");
+
+
+        monthSelect.value = today.getMonth() + 1;
+        yearSelect.value = today.getFullYear();
+
+
+        fetchData( monthSelect.value, yearSelect.value);
+        updateLinks( monthSelect.value, yearSelect.value);
+
+        document.getElementById("dateMessage").innerHTML =
+            `Chi tiết tháng - ${monthSelect.value} / ${yearSelect.value}`;
+
+        document.getElementById("filterForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const selectedMonth = monthSelect.value;
+            const selectedYear = yearSelect.value;
+
+            fetchData( selectedMonth, selectedYear);
+            updateLinks(selectedMonth, selectedYear);
+
+            document.getElementById("dateMessage").innerHTML =
+                `Chi tiết tháng - ${selectedMonth} / ${selectedYear}`;
+        });
+
+        function fetchData( month, year) {
+            const apiUrl = `/Admin/statistical/api/revenue?type=month&month=${month}&year=${year}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Dữ liệu từ API:", data);
+                    updateUI(data);
+                })
+                .catch(error => console.error("Lỗi khi gọi API:", error));
+        }
+
+        function updateUI(data) {
+            document.querySelector(".bg-primary .card-title").textContent = `Đơn hàng (V): ${data.revenueSummary.totalOrdersSuccess}`;
+            document.querySelector(".bg-warning .card-title").textContent = `Tổng sản phẩm: ${data.revenueSummary.totalItems}`;
+            document.querySelector(".bg-success .card-title").textContent =
+                `Doanh thu: ${new Intl.NumberFormat('vi-VN').format(data.revenueSummary.revenue)} VND`;
+            document.querySelector(".bg-danger .card-title").textContent = `Đơn hàng (X): ${data.revenueSummary.totalOrdersFailed}`;
+            updateCharts(data);
+        }
+        function updateLinks( month, year) {
+            document.getElementById("revenue-detail").href = `/Admin/statistical/revenue/detail?type=month&month=${month}&year=${year}`;
+            document.getElementById("products-detail").href = `/Admin/statistical/products/detail?type=month&month=${month}&year=${year}`;
+            document.getElementById("orders-detail").href = `/Admin/statistical/orders/detail?type=month&month=${month}&year=${year}&status=DELIVERED`;
+            document.getElementById("orders-cancel-detail").href = `/Admin/statistical/orders/detail?type=month&month=${month}&year=${year}&status=CANCELLED`;
+        }
+
+        function updateCharts(data) {
+            const areaChart = Chart.getChart("areaChart");
+            const barChart = Chart.getChart("barChart");
+
+            if (areaChart) areaChart.destroy();
+            if (barChart) barChart.destroy();
+
+            // Biểu đồ đường (Doanh thu theo thời gian)
+            new Chart(document.getElementById("areaChart").getContext("2d"), {
+                type: "line",
+                data: {
+                    labels: data.dailyRevenue.map(item => item.month),
+                    datasets: [{
+                        label: "Doanh thu",
+                        data: data.dailyRevenue.map(item => item.revenue),
+                        borderColor: "blue",
+                        backgroundColor: "rgba(0, 123, 255, 0.2)",
+                        fill: true
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Tháng",  // 🛠 Ghi chú cho trục X (Năm)
+                                font: { weight: "bold" }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Doanh thu (VND)",  // 🛠 Ghi chú cho trục Y (Doanh thu)
+                                font: { weight: "bold" }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Biểu đồ cột (Sản phẩm bán chạy)
+            new Chart(document.getElementById("barChart").getContext("2d"), {
+                type: "bar",
+                data: {
+                    labels: data.topSellingProducts.map(item => item.name),
+                    datasets: [{
+                        label: "Số lượng bán",
+                        data: data.topSellingProducts.map(item => item.quantitySold),
+                        backgroundColor: "blue"
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Sản phẩm",  // 🛠 Ghi chú cho trục X (Tên sản phẩm)
+                                font: { weight: "bold" }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Số lượng bán",  // 🛠 Ghi chú cho trục Y (Số lượng bán)
+                                font: { weight: "bold" }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+    });
+</script>
+</body>
+</html>
