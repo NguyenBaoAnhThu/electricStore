@@ -20,29 +20,31 @@ public class ProductDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private Integer screenSize;
+    private Double screenSize;
     private Integer camera;
+    private Integer frontCamera;
     private String color;
+    private String description;
 
-    @Column(name = "cpu")
     private String cpu;
-
-    @Column(name = "ram")
+    private String gpu;
     private String ram;
-
-    @Column(name = "rom")
     private String rom;
 
-    @Column(name = "battery")
+    private String os;
+    private String osVersion;
     private String battery;
 
-    private String description;
+    private String screenType;
+    private String screenResolution;
+
+    private String ports;
+    private Integer weight;
+
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
     @OneToOne
-    @JoinColumn(name = "product_id", nullable = false) // Đảm bảo không null
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 }
-
-

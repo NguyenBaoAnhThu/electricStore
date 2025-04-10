@@ -75,71 +75,6 @@
             padding: 15px 0;
             border-bottom: 1px solid #e9ecef;
         }
-
-        /* Form tìm kiếm */
-        .search-form {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Điều chỉnh các trường nhập liệu */
-        .search-form .form-group {
-            margin-bottom: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .search-form .form-label {
-            margin-bottom: 0;
-            font-weight: 600;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .search-form .form-control,
-        .search-form .form-select {
-            height: 38px;
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #ced4da;
-            font-size: 14px;
-            min-width: 120px;
-        }
-
-        /* Định dạng nhóm input với đơn vị tiền */
-        .search-form .input-group {
-            width: auto;
-            min-width: 120px;
-        }
-
-        .search-form .input-group-text {
-            background-color: #f1f1f1;
-            font-size: 14px;
-            padding: 6px 8px;
-        }
-
-        /* Nút tìm kiếm */
-        .search-form .btn-search {
-            height: 38px;
-            background-color: #D10024;
-            color: white;
-            border: none;
-            padding: 0 15px;
-            border-radius: 4px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .search-form .btn-search:hover {
-            background-color: #b80020;
-            box-shadow: 0 2px 5px rgba(209, 0, 36, 0.3);
-        }
     </style>
 </head>
 <body>
@@ -214,18 +149,17 @@
             <table class="table table-striped table-bordered">
                 <thead class="table-dark">
                 <tr>
-                    <!-- Hide Checkbox column for non-admin roles -->
                     <th width="40" sec:authorize="hasRole('ROLE_ADMIN')">
                         <input type="checkbox" id="selectAll" class="form-check-input">
                     </th>
                     <th width="60">STT</th>
+                    <th width="60">Mã SP</th>
                     <th width="100">Hình ảnh</th>
                     <th>Tên sản phẩm</th>
                     <th>Giá</th>
                     <th>Danh mục</th>
                     <th>Thương hiệu</th>
                     <th>Nhà cung cấp</th>
-                    <!-- Hide Thao tác column for non-admin roles -->
                     <th width="80" sec:authorize="hasRole('ROLE_ADMIN')">Thao tác</th>
                 </tr>
                 </thead>
@@ -239,10 +173,11 @@
                     <td class="text-center" sec:authorize="hasRole('ROLE_ADMIN')">
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input productCheckbox" th:value="${product.productID}"
-                                   th:id="'productCheck-' + ${p.index}">
+                                   th:id="'productCheck-' + ${p.index}" th:data-code="${product.productCode}">
                         </div>
                     </td>
                     <td th:text="${p.index + 1}"></td>
+                    <td th:text="${product.productCode}"></td>
                     <td class="text-center"><img th:src="${product.mainImageUrl}" alt="Product Image" class="product-image" /></td>
                     <td th:text="${product.name}"></td>
                     <td th:text="${product.formattedPrice}"></td>
@@ -264,7 +199,7 @@
         <!-- Pagination and Delete Button Section -->
         <div class="d-flex justify-content-between align-items-center mt-4">
             <!-- Show "Xóa sản phẩm" button only to ROLE_ADMIN -->
-            <button type="button" id="deleteBtn" class="btn btn-danger" title="Xóa" onclick="deleteSelectedProduct()"
+            <button type="button" id="deleteBtn" class="btn btn-danger" title="Xóa" data-bs-toggle="modal" data-bs-target="#cancelConfirmModal"
                     sec:authorize="hasRole('ROLE_ADMIN')">
                 <i class="fas fa-trash-alt me-2"></i> Xóa sản phẩm
             </button>
@@ -297,7 +232,7 @@
                     <!-- Nút chuyển sang trang sau -->
                     <li class="page-item" th:classappend="${productPage.last} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/Admin/product-manager(page=${productPage.number + 2}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice}, category=${category})}"
+                           th:href="@{/Admin/product-manager(page=${productPage.number + 2})}"
                            aria-label="Next">
                             <span aria-hidden="true">»</span>
                         </a>
@@ -306,7 +241,7 @@
                     <!-- Nút trang cuối cùng -->
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/Admin/product-manager(page=${totalPages}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice}, category=${category})}"
+                           th:href="@{/Admin/product-manager(page=${totalPages})}"
                            aria-label="Last">
                             <span aria-hidden="true">»»</span>
                         </a>
@@ -315,11 +250,38 @@
             </nav>
         </div>
     </div>
+
+    <!-- Add Delete Confirmation Modal -->
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="cancelConfirmModalLabel">Xác nhận Xóa Sản Phẩm</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body d-flex align-items-center">
+                    <div class="me-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="black" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zm.1-6.995a.905.905 0 0 1 1.8 0l-.35 4.5a.55.55 0 0 1-1.1 0l-.35-4.5z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="mb-0">Xác nhận xóa sản phẩm đã chọn?</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-primary" id="confirmCancelBtn">Xác nhận</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </main>
 <div th:replace="~{admin/fragments/footer :: footer}"></div>
 <script th:src="@{/js/admin/layout.js}"></script>
 <script th:src="@{/js/admin/sidebarActiveMenu.js}" defer></script>
-<script th:src="@{/js/admin/deleteMultipleProduct.js}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script th:src="@{/js/admin/header.js}" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -330,6 +292,7 @@
     });
 </script>
 <script>
+    // Form validation
     (function () {
         'use strict'
         var forms = document.querySelectorAll('.needs-validation')
@@ -345,6 +308,82 @@
                 }, false)
             })
     })()
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let selectAll = document.getElementById("selectAll");
+        let checkboxes = document.querySelectorAll(".productCheckbox");
+        let deleteBtn = document.getElementById("deleteBtn");
+
+        // Chọn tất cả
+        selectAll.addEventListener("change", function () {
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        // Xác nhận xóa từ modal
+        document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+            // Đóng modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('cancelConfirmModal'));
+            modal.hide();
+
+            // Gọi hàm xóa
+            deleteSelectedProduct();
+        });
+    });
+
+    function deleteSelectedProduct() {
+        let selectedIds = [];
+        let selectedCodes = [];
+
+        document.querySelectorAll(".productCheckbox:checked").forEach(checkbox => {
+            selectedIds.push(checkbox.value);
+            selectedCodes.push(checkbox.getAttribute('data-code'));
+        });
+
+        if (selectedIds.length === 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Chưa chọn sản phẩm!",
+                text: "Vui lòng chọn ít nhất một sản phẩm trước khi xóa.",
+                confirmButtonText: "OK"
+            });
+            return;
+        }
+
+        fetch("/Admin/product-manager/delete", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(selectedIds)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const productCodes = selectedCodes.join(", ");
+                    const message = "Xóa sản phẩm " + productCodes + " thành công.";
+                    const redirectUrl = "/Admin/product-manager?message=" + encodeURIComponent(message);
+                    window.location.href = redirectUrl;
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Lỗi!",
+                        text: "Có lỗi xảy ra, vui lòng thử lại!",
+                        confirmButtonText: "OK"
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi hệ thống!",
+                    text: "Không thể kết nối đến server.",
+                    confirmButtonText: "OK"
+                });
+            });
+    }
 </script>
 </body>
 </html>

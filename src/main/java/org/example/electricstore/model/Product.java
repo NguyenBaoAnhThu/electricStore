@@ -26,31 +26,31 @@ public class Product {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String mainImageUrl;
     private Double price;
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
+    private String productCode;
 
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
     private Integer stock;
+
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @ManyToOne
-    @JoinColumn(name = "brand_id", nullable = false)  // Không cho phép null
+    @JoinColumn(name = "brand_id", nullable = false)
     private Brand brand;
 
     @ManyToOne
-    @JoinColumn(name = "supplier_id", nullable = false)  // Không cho phép null
+    @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
-
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private ProductDetail productDetail;
 
-
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> productImages = new ArrayList<>();
-
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDetail> orderDetails;
@@ -60,7 +60,6 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WareHouse> wareHouses;
-
 
     @Transient
     private String formattedPrice;

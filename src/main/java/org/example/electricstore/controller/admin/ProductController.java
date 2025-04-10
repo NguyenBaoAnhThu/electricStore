@@ -50,7 +50,7 @@ public class ProductController {
             @RequestParam(name = "maxPrice", required = false) Double maxPrice,
             @RequestParam(name = "category", required = false) Integer categoryId,
             @RequestParam(name = "page", required = false, defaultValue = "1") int page,
-            @RequestParam(name = "size", required = false, defaultValue = "5") int size,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size,
             @RequestParam(name = "message", required = false) String message,
             Model model) {
 
@@ -76,7 +76,7 @@ public class ProductController {
         model.addAttribute("category", categoryId);
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("brands", brandService.getAllBrands());
-        model.addAttribute("suppliers",supplierService.getAllSuppliers());
+        model.addAttribute("suppliers", supplierService.getAllSuppliers());
 
         // ⚠ Xử lý nếu trang hiện tại vượt quá số trang thực tế
         if (page > productPage.getTotalPages() && productPage.getTotalPages() > 0) {
@@ -118,7 +118,7 @@ public class ProductController {
             model.addAttribute("product", productDTO);
             model.addAttribute("categories", categoryService.getAllCategories());
             model.addAttribute("brands", brandService.getAllBrands());
-            model.addAttribute("suppliers",supplierService.getAllSuppliers());
+            model.addAttribute("suppliers", supplierService.getAllSuppliers());
             return "admin/product_brand_category/editProduct";
         } else {
             return "redirect:/Admin/product-manager?message=Không tìm thấy sản phẩm!";
@@ -148,7 +148,7 @@ public class ProductController {
             model.addAttribute("categories", categoryService.getAllCategories());
             model.addAttribute("brands", brandService.getAllBrands());
             model.addAttribute("suppliers", supplierService.getAllSuppliers());
-            model.addAttribute("mainImageUrl",productDTO.getMainImageUrl()) ;
+            model.addAttribute("mainImageUrl", productDTO.getMainImageUrl());
             return "admin/product_brand_category/editProduct";
         }
         // Chuyển đổi từ DTO sang Entity
@@ -157,7 +157,6 @@ public class ProductController {
         //  Lưu sản phẩm vào database
         productService.updateProduct(product, files);
         return "redirect:/Admin/product-manager";
-
     }
 
     @GetMapping("/add")
@@ -165,7 +164,7 @@ public class ProductController {
         model.addAttribute("product", new ProductDTO());
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("brands", brandService.getAllBrands());
-        model.addAttribute("suppliers",supplierService.getAllSuppliers());
+        model.addAttribute("suppliers", supplierService.getAllSuppliers());
         return "admin/product_brand_category/addProduct";
     }
 
@@ -177,12 +176,12 @@ public class ProductController {
             @RequestParam("files") List<MultipartFile> files,
             Model model) {
         String imgLink = productDTO.getMainImageUrl();
-        System.out.println(imgLink);
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("categories", categoryService.getAllCategories());
             model.addAttribute("brands", brandService.getAllBrands());
-            model.addAttribute("suppliers",supplierService.getAllSuppliers());
-            model.addAttribute("mainImageUrl",productDTO.getMainImageUrl()) ;
+            model.addAttribute("suppliers", supplierService.getAllSuppliers());
+            model.addAttribute("mainImageUrl", productDTO.getMainImageUrl());
             return "admin/product_brand_category/addProduct";
         }
 
@@ -191,13 +190,14 @@ public class ProductController {
             bindingResult.rejectValue("mainImageUrl", "error.product", "Vui lòng chọn ít nhất một ảnh!");
             model.addAttribute("categories", categoryService.getAllCategories());
             model.addAttribute("brands", brandService.getAllBrands());
-            model.addAttribute("suppliers",supplierService.getAllSuppliers());
+            model.addAttribute("suppliers", supplierService.getAllSuppliers());
             return "admin/product_brand_category/addProduct";
         }
 
         // Chuyển đổi từ DTO sang Entity
         Product product = productMapper.toEntity(productDTO);
 
+        // Thiết lập mối quan hệ giữa product và productDetail
         product.getProductDetail().setProduct(product);
 
         //  Lưu sản phẩm vào database
@@ -215,5 +215,4 @@ public class ProductController {
             return ResponseEntity.badRequest().body("{\"success\": false, \"message\": \"Lỗi khi xóa sản phẩm!\"}");
         }
     }
-
 }
