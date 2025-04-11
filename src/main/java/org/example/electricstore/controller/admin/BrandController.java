@@ -4,21 +4,17 @@ import org.example.electricstore.DTO.brand.BrandDTO;
 import org.example.electricstore.model.Brand;
 import org.example.electricstore.service.impl.BrandService;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,106 +22,127 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/Admin/brand-manager")
 public class BrandController {
-    @Autowired
-    private BrandService brandService;
+
+    private final BrandService brandService;
+
+    public BrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
 
     @GetMapping
-    public String showListBrand(
+    public ModelAndView showListBrand(
             Authentication authentication,
-            @RequestParam(name = "keyword", required = false) String keyword,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            Model model) {
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+
+        ModelAndView modelAndView = new ModelAndView("admin/product_brand_category/listBrand");
         String username = authentication.getName();
-        int pageSize = 10;
         Page<Brand> brandPage;
 
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            brandPage = brandService.findByNameContainingPaginated(keyword, PageRequest.of(page, pageSize));
+        String filterKeyword = keyword.trim();
+        if (!filterKeyword.isEmpty()) {
+            brandPage = brandService.findByNameContainingPaginated(filterKeyword, page, size);
         } else {
-            brandPage = brandService.getAllBrandsPaginated(PageRequest.of(page, pageSize));
+            brandPage = brandService.getAllBrandsPaginated(page, size);
         }
 
-        // ⚠ Xử lý nếu trang hiện tại vượt quá số trang thực tế
         if (page >= brandPage.getTotalPages() && brandPage.getTotalPages() > 0) {
-            int newPage = Math.max(0, brandPage.getTotalPages() - 1); // Quay về trang hợp lệ cuối cùng
-            return "redirect:/Admin/brand-manager?page=" + newPage +
-                    (keyword != null && !keyword.trim().isEmpty() ? "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8) : "");
+            int lastPage = Math.max(0, brandPage.getTotalPages() - 1);
+            ModelAndView redirectView = new ModelAndView("redirect:/Admin/brand-manager");
+            redirectView.addObject("page", lastPage);
+            if (!filterKeyword.isEmpty()) {
+                redirectView.addObject("keyword", filterKeyword);
+            }
+            return redirectView;
         }
 
-        // ⚠ Nếu tất cả dữ liệu bị xóa, quay về trang đầu tiên
-        if (brandPage.getTotalElements() == 0 && page > 0) {
-            return "redirect:/Admin/brand-manager?page=0" +
-                    (keyword != null && !keyword.trim().isEmpty() ? "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8) : "");
-        }
+        modelAndView.addObject("brands", brandPage.getContent());
+        modelAndView.addObject("currentPage", page + 1); // Hiển thị trang từ 1 (UI), nhưng trang thực tế từ 0 (backend)
+        modelAndView.addObject("totalPages", brandPage.getTotalPages() > 0 ? brandPage.getTotalPages() : 1);
+        modelAndView.addObject("keyword", filterKeyword);
+        modelAndView.addObject("brand", new BrandDTO());
+        modelAndView.addObject("username", username);
 
-        model.addAttribute("brands", brandPage.getContent());
-        model.addAttribute("currentPage", page + 1);
-        model.addAttribute("totalPages", brandPage.getTotalPages());
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("brand", new BrandDTO());
-        model.addAttribute("username", username);
-
-        return "admin/product_brand_category/listBrand";
+        return modelAndView;
     }
 
     @PostMapping("/add")
     public String addBrand(@Valid @ModelAttribute("brand") BrandDTO brandDTO,
-                           BindingResult bindingResult, Model model,
+                           BindingResult bindingResult,
                            RedirectAttributes redirectAttributes) {
+
         if (bindingResult.hasErrors()) {
-            Page<Brand> brandPage = brandService.getAllBrandsPaginated(PageRequest.of(0, 5));
-            model.addAttribute("brands", brandPage.getContent());
-            model.addAttribute("currentPage", 1);
-            model.addAttribute("totalPages", brandPage.getTotalPages());
-            model.addAttribute("errorMessage", "Dữ liệu nhập không hợp lệ!");
-            return "admin/product_brand_category/listBrand";
+            // Vẫn giữ cách xử lý lỗi của form thông thường
+            redirectAttributes.addFlashAttribute("errorMessage", "Dữ liệu nhập không hợp lệ!");
+            return "redirect:/Admin/brand-manager";
         }
+
         Brand brand = new Brand();
-        BeanUtils.copyProperties(brandDTO, brand);
+        brand.setName(brandDTO.getName());
+        if (brandDTO.getCountry() != null) {
+            brand.setCountry(brandDTO.getCountry());
+        }
+
         brandService.saveBrand(brand);
-        model.addAttribute("showModal", true); // Biến để kích hoạt modal
+
         redirectAttributes.addFlashAttribute("successMessage", "Thêm thương hiệu thành công!");
         return "redirect:/Admin/brand-manager";
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditBrandForm(@PathVariable("id") Integer id, Model model) {
-        Optional<Brand> brand = brandService.getBrandById(id);
-        if (brand.isPresent()) {
-            model.addAttribute("brand", brand);
-            return "admin/product_brand_category/listBrand";
+    public ModelAndView showEditBrandForm(@PathVariable("id") Integer id) {
+        ModelAndView modelAndView = new ModelAndView("admin/product_brand_category/editBrand");
+
+        Optional<Brand> brandOptional = brandService.getBrandById(id);
+        if (brandOptional.isPresent()) {
+            modelAndView.addObject("brand", brandOptional.get());
         } else {
-            return "redirect:/Admin/brand-manager?error=BrandNotFound";
+            modelAndView.setViewName("redirect:/Admin/brand-manager");
         }
+
+        return modelAndView;
     }
 
     @PostMapping("/edit")
     public String updateBrand(@Valid @ModelAttribute("brand") Brand brand,
-                              BindingResult bindingResult) {
+                              BindingResult bindingResult,
+                              RedirectAttributes redirectAttributes) {
+
         if (bindingResult.hasErrors()) {
-            return "admin/product_brand_category/listBrand";
+            redirectAttributes.addFlashAttribute("errorMessage", "Dữ liệu cập nhật không hợp lệ!");
+            return "redirect:/Admin/brand-manager";
         }
+
         brand.setUpdateAt(LocalDateTime.now());
         brandService.saveBrand(brand);
+        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thương hiệu thành công!");
         return "redirect:/Admin/brand-manager";
     }
 
     @PostMapping("/delete")
+    @ResponseBody
     public ResponseEntity<?> deleteBrands(@RequestBody List<Integer> brandIds) {
         try {
             brandService.deleteBrand(brandIds);
-            return ResponseEntity.ok().body("{\"success\": true, \"message\": \"Thương hiệu đã được xóa thành công!\"}");
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Thương hiệu đã được xóa thành công!");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("{\"success\": false, \"message\": \"Lỗi khi xóa thương hiệu!\"}");
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Lỗi khi xóa thương hiệu!");
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
     @GetMapping("/check-name")
     @ResponseBody
-    public ResponseEntity<Object> checkBrandNameExists(@RequestParam("name") String name) {
+    public ResponseEntity<?> checkBrandNameExists(@RequestParam("name") String name) {
         boolean exists = brandService.existsByName(name);
-        return ResponseEntity.ok().body(
-                Map.of("exists", exists)
-        );
+        Map<String, Object> response = new HashMap<>();
+        response.put("exists", exists);
+        return ResponseEntity.ok(response);
     }
 }

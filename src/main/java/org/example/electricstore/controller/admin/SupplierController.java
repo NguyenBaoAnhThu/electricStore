@@ -1,4 +1,4 @@
-package org.example.electricstore.controller.supplier;
+package org.example.electricstore.controller.admin;
 
 import org.example.electricstore.DTO.supplier.SupplierDTO;
 import org.example.electricstore.model.Product;

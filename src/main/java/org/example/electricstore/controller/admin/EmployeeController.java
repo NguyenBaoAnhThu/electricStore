@@ -109,49 +109,6 @@ public class EmployeeController {
         }
     }
 
-
-//    @PostMapping("/employee-manager/edit")
-//    public ModelAndView updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
-//                                       BindingResult bindingResult,
-//                                       RedirectAttributes redirectAttributes,
-//                                       @RequestParam(name = "page", required = false, defaultValue = "1") int page,
-//                                       @RequestParam(name = "size", required = false, defaultValue = "3") int size,
-//                                       @RequestParam(name = "searchField", required = false) String field,
-//                                       @RequestParam(name = "searchInput", required = false, defaultValue = "") String keyword) {
-//
-//        if (bindingResult.hasErrors()) {
-//            ModelAndView modelAndView = new ModelAndView("admin/employee/listEmployee");
-//            String filterKeyWord = keyword.trim();
-//            Page<Employee> employeesPage;
-//
-//            if (!filterKeyWord.isEmpty() && field != null) {
-//                employeesPage = this.employeeService.searchByFieldAndKeyword(field, filterKeyWord, page, size);
-//            } else {
-//                employeesPage = this.employeeService.findAll(page, size);
-//            }
-//
-//            modelAndView.addObject("employees", employeesPage);
-//            modelAndView.addObject("field", field);
-//            modelAndView.addObject("filterKeyWord", filterKeyWord);
-//            modelAndView.addObject("currentPage", page);
-//            modelAndView.addObject("totalPages", employeesPage.getTotalPages());
-//            modelAndView.addObject("employeeDTO", employeeDTO);
-//            modelAndView.addObject("employeePosition", new EmployeePosition());
-//            modelAndView.addObject("showEditEmployeeModal", true);
-//
-//            return modelAndView;
-//        }
-//
-//        try {
-//            this.employeeService.update(employeeDTO);
-//            redirectAttributes.addFlashAttribute("message", "Cập nhật nhân viên thành công");
-//        } catch (Exception e) {
-//            redirectAttributes.addFlashAttribute("error", "Lỗi khi cập nhật nhân viên: " + e.getMessage());
-//        }
-//
-//        return new ModelAndView("redirect:/Admin/employee-manager");
-//    }
-
     @PostMapping("/employee-manager/disable")
     public ResponseEntity<?> toggleEmployeeStatus(@RequestBody Map<String, List<Integer>> request) {
         List<Integer> employeeIds = request.get("employeeIds");

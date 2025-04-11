@@ -1,4 +1,4 @@
-package org.example.electricstore.controller.statistical;
+package org.example.electricstore.controller.admin;
 
 import org.example.electricstore.DTO.product.ProductStatisticalDTO;
 import org.example.electricstore.DTO.statistical.*;

@@ -69,7 +69,6 @@ public class CategoryController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("username",username);
 
-        // Adding a new empty CategoryDTO for the add form
         if (!model.containsAttribute("categorys")) {
             model.addAttribute("categorys", new CategoryDTO());
         }
