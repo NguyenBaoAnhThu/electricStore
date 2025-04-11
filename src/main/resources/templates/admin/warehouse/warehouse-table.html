@@ -100,11 +100,11 @@
                         <form class="row align-items-end g-3" method="GET" action="/Admin/ware-houses" id="searchForm">
                             <div class="col-md-4">
                                 <label for="importDate" class="form-label">Ngày Nhập Hàng</label>
-                                <input type="date" class="form-control" id="importDate" name="importDate">
+                                <input type="date" class="form-control" th:value="${importDate}" id="importDate" name="importDate">
                             </div>
                             <div class="col-md-4">
                                 <label for="status" class="form-label">Trạng Thái</label>
-                                <select class="form-select" id="status" name="statusStock">
+                                <select class="form-select" id="status" name="statusStock" th:value="${statusStock}">
                                     <option value="0">-- Lọc trạng thái --</option>
                                     <option value="3" th:selected="${statusStock == 3}">Ổn định</option>
                                     <option value="2" th:selected="${statusStock == 2}">Số lượng ít</option>
@@ -113,17 +113,23 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="brand" class="form-label">Thương Hiệu</label>
-                                <select class="form-select" id="brand" name="brand">
+                                <select class="form-select" id="brand" name="brand" th:value="${brand}">
                                     <option value="">-- Chọn thương hiệu --</option>
+                                    <th:block th:each="b : ${brands}">
+                                        <option th:value="${b.name}"
+                                                th:text="${b.name}"
+                                                th:selected="${b.name == brand}"></option>
+                                    </th:block>
                                 </select>
                             </div>
+
                             <div class="col-md-6">
                                 <label for="productCode" class="form-label">Mã Sản phẩm</label>
-                                <input type="text" class="form-control" id="productCode" name="productCode" placeholder="Nhập mã sản phẩm">
+                                <input type="text" class="form-control" th:value="${productCode}" id="productCode" name="productCode" placeholder="Nhập mã sản phẩm">
                             </div>
                             <div class="col-md-6">
                                 <label for="productName" class="form-label">Tên Sản phẩm</label>
-                                <input type="text" class="form-control" id="productName" name="productName" placeholder="Nhập tên sản phẩm">
+                                <input type="text" class="form-control" th:value="${productName}" id="productName" name="productName" placeholder="Nhập tên sản phẩm">
                             </div>
                         </form>
                     </div>
@@ -181,18 +187,18 @@
                 </tr>
                 <tr th:each="item, c : ${wareHouses}">
                     <td th:text="${c.index + 1}"></td>
+                    <td th:text="${item.product != null ? item.product.productCode : 'Không có sản phẩm'}"></td>
                     <td th:text="${item.product != null ? item.product.name : 'Không có sản phẩm'}"></td>
-                    <td th:text="${item.product.supplier != null ? item.product.supplier.name : 'Không có nhà cung cấp'}"></td>
-                    <td th:text="${item.quantity}"></td>
-                    <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}"></td>
-                    <td th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')}"></td>
+                    <td th:text="${item.product.brand != null ? item.product.brand.name : 'Không có thương hiệu'}"></td>
+                    <td th:text="${item.product.stock}"></td>
+                    <td th:text="${item.importDate}"></td>
                     <td>
                         <span class="badge"
-                              th:classappend="${item.quantity == 0} ? 'bg-danger'
-                                             : (${item.quantity < 100} ? 'bg-warning'
+                              th:classappend="${item.product.stock == 0} ? 'bg-danger'
+                                             : (${item.product.stock <= 100} ? 'bg-warning'
                                              : 'bg-success')"
-                              th:text="${item.quantity == 0} ? 'Hết hàng'
-                                       : (${item.quantity < 100} ? 'Số lượng ít'
+                              th:text="${item.product.stock == 0} ? 'Hết hàng'
+                                       : (${item.product.stock <= 100} ? 'Số lượng ít'
                                        : 'Ổn định')">
                         </span>
                     </td>
@@ -204,18 +210,20 @@
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-end m-0 shadow-none border-0">
                 <!-- Nút trang đầu tiên -->
-                <li class="page-item" th:classappend="${wareHouses.first} ? 'disabled'">
+                <li class="page-item" th:classappend="${wareHousePage.first} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/Admin/ware-houses(page=1, searchField=${field}, searchInput=${filterKeyWord}, statusStock=${statusStock})}"
+                       th:href="@{/Admin/ware-houses(page=1,
+                       importDate=${importDate}, brand=${brand}, statusStock=${statusStock} , productCode=${productCode} , productName=${productName})}"
                        aria-label="First">
                         <span aria-hidden="true">&laquo;&laquo;</span>
                     </a>
                 </li>
 
                 <!-- Nút lùi về trang trước -->
-                <li class="page-item" th:classappend="${wareHouses.first} ? 'disabled'">
+                <li class="page-item" th:classappend="${wareHousePage.first} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/Admin/ware-houses(page=${wareHouses.number > 0 ? wareHouses.number : 1}, searchField=${field}, searchInput=${filterKeyWord}, statusStock=${statusStock})}"
+                       th:href="@{/Admin/ware-houses(page=${wareHousePage.number > 0 ? wareHousePage.number : 1},
+                       importDate=${importDate}, brand=${brand}, statusStock=${statusStock} , productCode=${productCode} , productName=${productName})}"
                        aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
@@ -223,23 +231,25 @@
 
                 <li class="page-item disabled">
                     <span class="page-link">
-                        <span th:text="${wareHouses.number + 1}"></span> / <span th:text="${wareHouses.totalPages}"></span>
+                        <span th:text="${wareHousePage.number + 1}"></span> / <span th:text="${wareHousePage.totalPages}"></span>
                     </span>
                 </li>
 
                 <!-- Nút chuyển sang trang sau -->
-                <li class="page-item" th:classappend="${wareHouses.last} ? 'disabled'">
+                <li class="page-item" th:classappend="${wareHousePage.last} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/Admin/ware-houses(page=${wareHouses.number + 2}, searchField=${field}, searchInput=${filterKeyWord}, statusStock=${statusStock})}"
+                       th:href="@{/Admin/ware-houses(page=${wareHousePage.number + 2},
+                       importDate=${importDate}, brand=${brand}, statusStock=${statusStock} , productCode=${productCode} , productName=${productName})}"
                        aria-label="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
 
                 <!-- Nút trang cuối cùng -->
-                <li class="page-item" th:classappend="${wareHouses.last} ? 'disabled'">
+                <li class="page-item" th:classappend="${wareHousePage.last} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/Admin/ware-houses(page=${wareHouses.totalPages}, searchField=${field}, searchInput=${filterKeyWord}, statusStock=${statusStock})}"
+                       th:href="@{/Admin/ware-houses(page=${wareHousePage.totalPages},
+                       importDate=${importDate}, brand=${brand}, statusStock=${statusStock} , productCode=${productCode} , productName=${productName})}"
                        aria-label="Last">
                         <span aria-hidden="true">&raquo;&raquo;</span>
                     </a>
