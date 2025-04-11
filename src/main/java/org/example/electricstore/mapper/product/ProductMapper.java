@@ -117,7 +117,7 @@ public class ProductMapper {
                 .productId(wareHouse.getProduct().getProductID())
                 .productName(wareHouse.getProduct().getName())
                 .supplierName(wareHouse.getProduct().getSupplier().getName())
-                .productQuantity(wareHouse.getQuantity())
+                .productQuantity(wareHouse.getProduct().getStock())
                 .productPrice(wareHouse.getPrice())
                 .build();
     }

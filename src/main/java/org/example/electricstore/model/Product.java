@@ -21,7 +21,6 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer productID;
-
     private String name;
     @Column(columnDefinition = "MEDIUMTEXT")
     private String mainImageUrl;

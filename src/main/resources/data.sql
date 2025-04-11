@@ -5,7 +5,7 @@ VALUES ('Nhân Viên Kinh Doanh', 'Phụ trách tìm kiếm khách hàng và ph�
        ('Nhân Viên Bán Hàng', 'Trực tiếp bán hàng tại cửa hàng'),
        ('Nhân Viên Thủ Kho', 'Quản lý nhập xuất kho và tồn kho'),
        ('Nhân Viên Kế Toán', 'Xử lý các vấn đề tài chính và kế toán');
-use finalCodeGymModule;
+use electricStore;
 # Thêm dữ liệu vào Roles
 INSERT INTO role (role_name)
 VALUES ('ROLE_ADMIN'),
@@ -152,21 +152,19 @@ VALUES
 (NOW(), 'Ring Indoor Cam - Camera an ninh trong nhà', 'https://byvn.net/7efZ', 'Ring Indoor Cam', 2490000, 200, NOW(), 1, 8, 1);
 
 
-INSERT INTO ware_house (price, quantity, product_id) VALUES                                                        (30000000, 200, 20),
-                                                                                                                   (35000000, 100, 1),
-                                                                                                                   (15000000, 200, 2),
-                                                                                                                   (30000000, 100, 3),
-                                                                                                                   (6000000, 200, 4),
-                                                                                                                   (8600000, 100, 5),
-                                                                                                                   (11000000, 200, 6),
-                                                                                                                   (4000000, 200, 7),
-                                                                                                                   (50000000, 300, 8),
-                                                                                                                   (36000000, 120, 9),
-                                                                                                                   (30000000, 90, 10),
-                                                                                                                   (27000000, 10, 11),
-                                                                                                                   (21000000, 120, 12),
-                                                                                                                   (45000000, 12, 14),
-                                                                                                                   (5000000, 129, 15);
+INSERT INTO ware_house (import_date, price, product_id) VALUES
+(NOW() , 123 , 1) ,
+(NOW() , 123 , 2) ,
+(NOW() , 123 , 3) ,
+(NOW() , 123 , 4) ,
+(NOW() , 123 , 5) ,
+(NOW() , 123 , 6) ,
+(NOW() , 123 , 7) ,
+(NOW() , 123 , 8) ,
+(NOW() , 123 , 9) ,
+(NOW() , 123 , 10) ;
+
+
 
 insert into customers (address, birth_date, customer_name, is_disabled, phone_number)
 values ('Ha Noi', '2002-06-12', 'Tran Hoai An', true, '0981828128'),

@@ -9,23 +9,30 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+
 
 @Repository
 public interface IWareHouseRepository extends JpaRepository<WareHouse, Integer> {
-    @Query("SELECT w FROM WareHouse w " +
-            "JOIN w.product p " +
-            "JOIN p.supplier s " +
-            "WHERE ((:keyword IS NULL OR :keyword = '' OR " +
-            "        (:field = 'productName' AND p.name LIKE %:keyword%) " +
-            "     OR (:field = 'supplierName' AND s.name LIKE %:keyword%))) " +
-            "AND (:status IS NULL OR " +
-            "    (:status = 1 AND w.quantity = 0) " +
-            "    OR (:status = 3 AND w.quantity >= 100) " +
-            "    OR (:status = 2 AND w.quantity < 100))")
-    Page<WareHouse> searchWareHouse(@Param("field") String field,
-                                    @Param("keyword") String keyword,
-                                    @Param("status") Integer status,
-                                    Pageable pageable);
+    @Query("""
+    SELECT w FROM WareHouse w
+    WHERE (:importDate IS NULL OR w.importDate = :importDate)
+      AND (:brand IS NULL OR :brand = '' OR w.product.brand.name = :brand)
+      AND (:statusStock IS NULL OR :statusStock = 0 OR 
+           (:statusStock = 1 AND w.product.stock = 0) OR 
+           (:statusStock = 2 AND w.product.stock > 0 AND w.product.stock <= 100) OR 
+           (:statusStock = 3 AND w.product.stock > 100))
+      AND (:productCode IS NULL OR :productCode = '' OR w.product.productCode LIKE %:productCode%)
+      AND (:productName IS NULL OR :productName = '' OR w.product.name LIKE %:productName%)
+""")
+    Page<WareHouse> findAllWithFilters(@Param("importDate") LocalDate importDate,
+                                       @Param("brand") String brand,
+                                       @Param("statusStock") Integer statusStock,
+                                       @Param("productCode") String productCode,
+                                       @Param("productName") String productName,
+                                       Pageable pageable);
+
+
     WareHouse findByProduct (Product product);
 
 

@@ -4,6 +4,8 @@ package org.example.electricstore.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 
 @Getter
 @Setter
@@ -19,6 +21,6 @@ public class WareHouse {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "product_id")
     private Product product;
-    private Integer quantity;
+    private LocalDate importDate;
     private Double price;
 }
