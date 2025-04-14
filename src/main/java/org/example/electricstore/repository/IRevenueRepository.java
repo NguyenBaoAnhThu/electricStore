@@ -45,10 +45,4 @@ public interface IRevenueRepository extends JpaRepository <Order , Integer> {
 
         @Query("SELECT o FROM Order o ORDER BY o.createAt ASC")
         List<Order> findAllOrders();
-
-
-
-
-
-
 }
