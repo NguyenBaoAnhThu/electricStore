@@ -3,12 +3,10 @@ package org.example.electricstore.controller.admin;
 import org.example.electricstore.DTO.product.ProductChoiceDTO;
 import org.example.electricstore.DTO.supplier.SupplierDTO;
 import org.example.electricstore.mapper.product.ProductMapper;
-import org.example.electricstore.model.Brand;
-import org.example.electricstore.model.Product;
-import org.example.electricstore.model.Supplier;
-import org.example.electricstore.model.WareHouse;
+import org.example.electricstore.model.*;
 import org.example.electricstore.repository.IProductRepository;
 import org.example.electricstore.repository.ISupplierRepository;
+import org.example.electricstore.repository.InvoiceItemRepository;
 import org.example.electricstore.service.impl.BrandService;
 import org.example.electricstore.service.impl.SupplierService;
 import org.example.electricstore.service.impl.WareHouseService;
@@ -35,19 +33,22 @@ public class WareHouseController {
     private final BrandService brandService;
     private ISupplierRepository supplierRepository;
     private IProductRepository productRepository;
+    private InvoiceItemRepository invoiceItemRepository;
 
     public WareHouseController(WareHouseService wareHouseService,
                                IProductService productService,
                                ProductMapper productMapper,
                                BrandService brandService,
     ISupplierRepository supplierRepository,
-                               IProductRepository productRepository) {
+                               IProductRepository productRepository,
+                               InvoiceItemRepository invoiceItemRepository) {
         this.wareHouseService = wareHouseService;
         this.productService = productService;
         this.productMapper = productMapper;
         this.brandService = brandService;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
+        this.invoiceItemRepository = invoiceItemRepository;
     }
 
 
@@ -122,7 +123,14 @@ public class WareHouseController {
         modelAndView.addObject("selectedSupplier", supplierId);
         return modelAndView;
     }
+    @GetMapping("/history_warehouse")
+    public ModelAndView showHistoryWarehouse() {
+        List<InvoiceItem> allItems = invoiceItemRepository.findAllWithInvoice(); // lấy trực tiếp InvoiceItem
 
+        ModelAndView modelAndView = new ModelAndView("admin/warehouse/history_warehouse");
+        modelAndView.addObject("invoiceItems", allItems);
+        return modelAndView;
+    }
 
 
 }

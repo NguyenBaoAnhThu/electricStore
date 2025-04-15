@@ -950,7 +950,7 @@
             if (res.ok) {
                 localStorage.removeItem(STORAGE_KEY);
                 alert("Lưu phiếu thành công!");
-                window.location.href = "/home";
+                window.location.href = "/Admin/ware-houses/history_warehouse";
             } else {
                 alert("Lỗi khi lưu phiếu: " + await res.text());
             }
@@ -959,8 +959,6 @@
             alert("Lỗi hệ thống khi lưu phiếu.");
         }
     });
-
-
 
 </script>
 

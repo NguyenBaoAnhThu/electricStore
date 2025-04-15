@@ -20,6 +20,9 @@ public class InvoiceItem {
     private long quantity;
     private long price;
 
+    @Column(name = "payment_status", nullable = false)
+    private String paymentStatus = "CHỜ THANH TOÁN";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id")
     private Invoice invoice;
