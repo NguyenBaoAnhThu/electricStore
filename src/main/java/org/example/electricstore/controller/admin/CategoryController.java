@@ -37,6 +37,7 @@ public class CategoryController {
     public String showListCategory(
             Authentication authentication,
             @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "searchType", required = false, defaultValue = "name") String searchType,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             Model model) {
@@ -46,20 +47,27 @@ public class CategoryController {
         Page<Category> categoryPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            categoryPage = categoryService.findByNameContainingPaged(keyword, pageable);
+            if ("code".equals(searchType)) {
+                // Tìm kiếm theo mã danh mục
+                categoryPage = categoryService.findByCategoryCodeContainingPaged(keyword, pageable);
+            } else {
+                // Tìm kiếm theo tên (mặc định)
+                categoryPage = categoryService.findByNameContainingPaged(keyword, pageable);
+            }
         } else {
             categoryPage = categoryService.getAllCategoriesPaged(pageable);
         }
+
         if (page >= categoryPage.getTotalPages() && categoryPage.getTotalPages() > 0) {
             int newPage = Math.max(0, categoryPage.getTotalPages() - 1); // Quay về trang cuối cùng hợp lệ
             return "redirect:/Admin/category-manager?page=" + newPage +
-                    (keyword != null && !keyword.trim().isEmpty() ? "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8) : "");
+                    (keyword != null && !keyword.trim().isEmpty() ? "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8) + "&searchType=" + searchType : "");
         }
 
-// Nếu tất cả dữ liệu bị xóa, quay về trang đầu tiên
+        // Nếu tất cả dữ liệu bị xóa, quay về trang đầu tiên
         if (categoryPage.getTotalElements() == 0 && page > 0) {
             return "redirect:/Admin/category-manager?page=0" +
-                    (keyword != null && !keyword.trim().isEmpty() ? "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8) : "");
+                    (keyword != null && !keyword.trim().isEmpty() ? "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8) + "&searchType=" + searchType : "");
         }
 
         model.addAttribute("categories", categoryPage.getContent());
@@ -67,7 +75,8 @@ public class CategoryController {
         model.addAttribute("currentPage", page + 1);
         model.addAttribute("totalPages", categoryPage.getTotalPages());
         model.addAttribute("keyword", keyword);
-        model.addAttribute("username",username);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("username", username);
 
         if (!model.containsAttribute("categorys")) {
             model.addAttribute("categorys", new CategoryDTO());
@@ -81,8 +90,14 @@ public class CategoryController {
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes,
                               Model model) {
+        // Kiểm tra trùng lặp tên danh mục
         if (categoryService.existsByName(categoryDTO.getName())) {
             bindingResult.rejectValue("name", "error.category", "Tên danh mục đã tồn tại");
+        }
+
+        // Kiểm tra trùng lặp mã danh mục
+        if (categoryService.existsByCategoryCode(categoryDTO.getCategoryCode())) {
+            bindingResult.rejectValue("categoryCode", "error.category", "Mã danh mục đã tồn tại");
         }
 
         if (bindingResult.hasErrors()) {
@@ -91,6 +106,7 @@ public class CategoryController {
             redirectAttributes.addFlashAttribute("showModal", true);
             return "redirect:/Admin/category-manager";
         }
+
         Category category = categoryMapper.toEntity(categoryDTO);
         categoryService.saveCategory(category);
 
@@ -103,8 +119,14 @@ public class CategoryController {
                                  BindingResult bindingResult,
                                  RedirectAttributes redirectAttributes) {
 
+        // Kiểm tra trùng lặp tên danh mục (ngoại trừ chính nó)
         if (categoryService.existsByNameAndNotId(categoryDTO.getName(), categoryDTO.getCategoryID())) {
             bindingResult.rejectValue("name", "error.category", "Tên danh mục đã tồn tại");
+        }
+
+        // Kiểm tra trùng lặp mã danh mục (ngoại trừ chính nó)
+        if (categoryService.existsByCategoryCodeAndNotId(categoryDTO.getCategoryCode(), categoryDTO.getCategoryID())) {
+            bindingResult.rejectValue("categoryCode", "error.category", "Mã danh mục đã tồn tại");
         }
 
         if (bindingResult.hasErrors()) {
@@ -129,6 +151,7 @@ public class CategoryController {
 
         return "redirect:/Admin/category-manager";
     }
+
     @PostMapping("/delete")
     public ResponseEntity<?> deleteCategories(@RequestBody List<Integer> categoryIds) {
         try {
@@ -152,6 +175,18 @@ public class CategoryController {
             exists = categoryService.existsByNameAndNotId(name, id);
         } else {
             exists = categoryService.existsByName(name);
+        }
+        return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/check-code")
+    @ResponseBody
+    public ResponseEntity<Boolean> checkCodeExists(@RequestParam String categoryCode, @RequestParam(required = false) Integer id) {
+        boolean exists;
+        if (id != null) {
+            exists = categoryService.existsByCategoryCodeAndNotId(categoryCode, id);
+        } else {
+            exists = categoryService.existsByCategoryCode(categoryCode);
         }
         return ResponseEntity.ok(exists);
     }

@@ -41,6 +41,16 @@ public class CategoryService implements ICategoryService {
     }
 
     @Override
+    public List<Category> findByCategoryCodeContaining(String keyword) {
+        return categoryRepository.findByCategoryCodeContainingIgnoreCase(keyword);
+    }
+
+    @Override
+    public Page<Category> findByCategoryCodeContainingPaged(String keyword, Pageable pageable) {
+        return categoryRepository.findByCategoryCodeContainingIgnoreCase(keyword, pageable);
+    }
+
+    @Override
     public Optional<Category> getCategoryById(Integer categoryId) {
         return categoryRepository.findById(categoryId);
     }
@@ -51,6 +61,7 @@ public class CategoryService implements ICategoryService {
             Category existingCategory = categoryRepository.findById(category.getCategoryID()).orElse(null);
             if (existingCategory != null) {
                 existingCategory.setName(category.getName());
+                existingCategory.setCategoryCode(category.getCategoryCode());
                 existingCategory.setDescription(category.getDescription());
                 existingCategory.setUpdateAt(LocalDateTime.now());
                 categoryRepository.save(existingCategory);
@@ -67,6 +78,7 @@ public class CategoryService implements ICategoryService {
     public void deleteCategory(List<Integer> categoryIds) {
         categoryRepository.deleteAllById(categoryIds);
     }
+
     @Override
     public boolean existsByName(String name) {
         return categoryRepository.existsByNameIgnoreCase(name);
@@ -75,6 +87,16 @@ public class CategoryService implements ICategoryService {
     @Override
     public boolean existsByNameAndNotId(String name, Integer id) {
         return categoryRepository.existsByNameIgnoreCaseAndCategoryIDNot(name, id);
+    }
+
+    @Override
+    public boolean existsByCategoryCode(String categoryCode) {
+        return categoryRepository.existsByCategoryCodeIgnoreCase(categoryCode);
+    }
+
+    @Override
+    public boolean existsByCategoryCodeAndNotId(String categoryCode, Integer id) {
+        return categoryRepository.existsByCategoryCodeIgnoreCaseAndCategoryIDNot(categoryCode, id);
     }
 
     @Override
