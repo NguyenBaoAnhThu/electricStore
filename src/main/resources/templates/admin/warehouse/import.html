@@ -171,6 +171,25 @@
     </div>
 </main>
 
+<!-- Modal xác nhận lưu -->
+<div class="modal fade" id="saveConfirmModal" tabindex="-1" aria-labelledby="saveConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="saveConfirmModalLabel">Xác nhận lưu phiếu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn lưu phiếu nhập kho này không?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="confirmSaveBtn" class="btn btn-success">Xác nhận</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl"> <div class="modal-content">
         <div class="modal-header">
@@ -891,255 +910,57 @@
     });
 
 
-    /**
-     * Chụp ảnh phần tử phiếu nhập kho và tạo file PDF để tải về.
-     * - TẠM THỜI thêm tiêu đề vào DOM chỉ để chụp ảnh.
-     * - ẨN các nút (.btn-action) trước khi chụp.
-     * Quản lý trạng thái của nút được nhấn và khôi phục giao diện sau khi hoàn tất.
-     *
-     * @param {HTMLButtonElement} buttonElement - Nút HTML đã kích hoạt hàm này (ví dụ: #generatePdfOnlyBtn).
-     */
-    async function generateWarehouseReceiptPDF(buttonElement) {
-        // 1. Xác định phần tử gốc chứa toàn bộ nội dung phiếu cần chụp
-        const receiptElement = document.getElementById('warehouseImportForm');
-        if (!receiptElement) {
-            console.error("Lỗi: Không tìm thấy phần tử #warehouseImportForm để chụp ảnh.");
-            alert("Lỗi: Không tìm thấy nội dung phiếu để xuất PDF.");
-            return;
-        }
 
-        // --- Lưu trạng thái ban đầu của nút ---
-        const originalButtonHtml = buttonElement ? buttonElement.innerHTML : '';
-        const originalButtonDisabledState = buttonElement ? buttonElement.disabled : false;
+    document.getElementById('generatePdfOnlyBtn').addEventListener('click', function () {
+        const modal = new bootstrap.Modal(document.getElementById('saveConfirmModal'));
+        modal.show();
+    });
 
-        // --- Tìm các nút cần ẩn ---
-        const buttonsToHide = receiptElement.querySelectorAll('.btn-action');
+    document.getElementById('confirmSaveBtn').addEventListener('click', async function () {
+        const STORAGE_KEY = 'warehouseImportDraft';
+        const draft = localStorage.getItem(STORAGE_KEY);
+        if (!draft) return alert("Không tìm thấy dữ liệu trong localStorage");
 
-        // --- Biến để lưu tham chiếu đến tiêu đề tạm thời ---
-        let tempTitleElement = null;
-
-        // 2. Sử dụng try...catch...finally để đảm bảo khôi phục giao diện
         try {
-            // --- CHUẨN BỊ GIAO DIỆN TRƯỚC KHI CHỤP ---
+            const data = JSON.parse(draft);
+            const payload = {
+                receiptCode: data.header.receiptCode,
+                importDate: data.header.importDate,
+                supplierId: data.header.supplier,
+                notes: data.header.notes,
+                discount: BigInt(data.footer.discount).toString(),
+                vat: parseFloat(data.footer.vat),
+                additionalFees: BigInt(data.footer.additionalFees).toString(),
+                products: data.products.map(p => ({
+                    productId: p.productId,
+                    productCode: p.productCode,
+                    productName: p.productName,
+                    brand: p.brand,
+                    quantity: BigInt(p.quantity).toString(),
+                    price: BigInt(p.price).toString()
+                }))
+            };
 
-            // a) Ẩn các nút không mong muốn
-            buttonsToHide.forEach(btn => {
-                btn.style.display = 'none'; // Dùng display:none để ẩn hoàn toàn
+            const res = await fetch('/api/Admin/invoice', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-            console.log("Đã tạm thời ẩn các nút .btn-action.");
 
-            // // b) Thay đổi trạng thái nút được click
-            // if (buttonElement) {
-            //     buttonElement.style.display = ''; // Đảm bảo nút này không bị ẩn bởi lệnh trên
-            //     buttonElement.disabled = true;
-            //     buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Chuẩn bị...';
-            // }
-
-            // c) TẠM THỜI THÊM TIÊU ĐỀ VÀO DOM
-            tempTitleElement = document.createElement('div');
-            // Style cho tiêu đề (giống như cách thêm vào HTML trực tiếp trước đó)
-            tempTitleElement.style.textAlign = 'center';
-            tempTitleElement.style.marginBottom = '25px';
-            tempTitleElement.style.marginTop = '10px';
-            tempTitleElement.style.borderBottom = '1px solid #dee2e6';
-            tempTitleElement.style.paddingBottom = '15px';
-            tempTitleElement.setAttribute('id', 'temp-pdf-header'); // Đặt ID để chắc chắn có thể xóa
-
-            // Tạo nội dung tiêu đề H2
-            const titleH2 = document.createElement('h2');
-            titleH2.style.fontWeight = 'bold';
-            titleH2.style.marginBottom = '5px';
-            titleH2.style.textTransform = 'uppercase';
-            titleH2.textContent = 'PHIẾU NHẬP KHO'; // Nội dung tiêu đề
-
-            // Tạo nội dung ngày giờ
-            const dateP = document.createElement('p');
-            dateP.style.marginBottom = '0';
-            dateP.style.fontSize = '0.9em';
-            const dateSpan = document.createElement('span');
-            const now = new Date(); // Lấy ngày giờ hiện tại
-            // Format ngày giờ (ví dụ: 15/04/2025 08:08)
-            const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            dateSpan.textContent = formattedDate;
-            dateP.appendChild(document.createTextNode('Ngày lập phiếu: '));
-            dateP.appendChild(dateSpan);
-
-            // Gắn H2 và P vào div container tiêu đề
-            tempTitleElement.appendChild(titleH2);
-            tempTitleElement.appendChild(dateP);
-
-            // Chèn div tiêu đề này vào ĐẦU của form (trước phần tử con đầu tiên)
-            // receiptElement.prepend(tempTitleElement); // Phương thức đơn giản nhất
-            // Hoặc chèn trước phần tử cụ thể đầu tiên nếu biết chắc chắn
-            const firstRealContent = receiptElement.querySelector('.form-container, .table-container');
-            if (firstRealContent) {
-                receiptElement.insertBefore(tempTitleElement, firstRealContent);
+            if (res.ok) {
+                localStorage.removeItem(STORAGE_KEY);
+                alert("Lưu phiếu thành công!");
+                window.location.href = "/home";
             } else {
-                receiptElement.prepend(tempTitleElement); // Fallback
+                alert("Lỗi khi lưu phiếu: " + await res.text());
             }
-            console.log("Đã tạm thời thêm tiêu đề vào DOM để chuẩn bị chụp ảnh.");
-
-            // --- THỰC HIỆN CHỤP ẢNH ---
-            if (buttonElement) {
-                buttonElement.innerHTML = '<i class="fas fa-camera me-1"></i> Đang chụp ảnh...';
-            }
-            console.log("Bắt đầu chụp ảnh form (với tiêu đề tạm thời, không có nút)...");
-
-            const canvas = await html2canvas(receiptElement, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                // Lưu ý: Vì đã dùng display:none, không cần `ignoreElements` cho nút nữa.
-                // Nếu không dùng display:none, bạn có thể dùng:
-                // ignoreElements: (element) => element.classList.contains('btn-action') || element.id === 'temp-pdf-header' // Bỏ qua nút và cả tiêu đề tạm nếu cần
-            });
-
-            console.log("Đã chụp ảnh xong. Tiêu đề và nút không mong muốn đã được xử lý.");
-
-            // --- TẠO FILE PDF (Logic jsPDF giữ nguyên) ---
-            if (buttonElement) {
-                buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang tạo PDF...';
-            }
-            console.log("Đang tạo cấu trúc file PDF...");
-
-            const imgData = canvas.toDataURL('image/png', 1.0);
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', putOnlyUsedFonts: true });
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const pageMargin = 10;
-            const effectivePdfWidth = pdfWidth - (pageMargin * 2);
-            const effectivePdfHeight = pdfHeight - (pageMargin * 2);
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-            const canvasRatio = canvasWidth / canvasHeight;
-            let imgFinalWidth = effectivePdfWidth;
-            let imgFinalHeight = imgFinalWidth / canvasRatio;
-
-            // Xử lý phân trang nếu cần
-            if (imgFinalHeight > effectivePdfHeight) {
-                console.log("Nội dung dài, thực hiện phân trang...");
-                let remainingCanvasHeight = canvasHeight;
-                let sourceY = 0;
-                let pageCounter = 0;
-                while (remainingCanvasHeight > 0) {
-                    pageCounter++;
-                    let heightToDrawOnPagePx = Math.min(remainingCanvasHeight, effectivePdfHeight * canvasWidth / effectivePdfWidth);
-                    const tempPageCanvas = document.createElement('canvas');
-                    tempPageCanvas.width = canvasWidth;
-                    tempPageCanvas.height = heightToDrawOnPagePx;
-                    const tempPageCtx = tempPageCanvas.getContext('2d');
-                    tempPageCtx.drawImage(canvas, 0, sourceY, canvasWidth, heightToDrawOnPagePx, 0, 0, canvasWidth, heightToDrawOnPagePx);
-                    const pageImgData = tempPageCanvas.toDataURL('image/png', 1.0);
-                    let pageImgHeightMm = heightToDrawOnPagePx * effectivePdfWidth / canvasWidth;
-
-                    if (pageCounter > 1) { // Chỉ thêm trang mới từ trang thứ 2 trở đi
-                        pdf.addPage();
-                    }
-                    pdf.addImage(pageImgData, 'PNG', pageMargin, pageMargin, effectivePdfWidth, pageImgHeightMm);
-
-                    remainingCanvasHeight -= heightToDrawOnPagePx;
-                    sourceY += heightToDrawOnPagePx;
-                }
-            } else {
-                // Vừa 1 trang
-                console.log("Nội dung vừa 1 trang.");
-                imgFinalHeight = Math.min(imgFinalHeight, effectivePdfHeight);
-                imgFinalWidth = imgFinalHeight * canvasRatio;
-                imgFinalWidth = Math.min(imgFinalWidth, effectivePdfWidth);
-                const offsetX = pageMargin + (effectivePdfWidth - imgFinalWidth) / 2;
-                const offsetY = pageMargin;
-                pdf.addImage(imgData, 'PNG', offsetX, offsetY, imgFinalWidth, imgFinalHeight);
-            }
-
-            // --- Lưu file PDF ---
-            const receiptCodeInput = document.getElementById('receiptCode');
-            const receiptCode = receiptCodeInput ? receiptCodeInput.value.trim() : '';
-            const fileNameSuffix = receiptCode || 'PhieuNhapKho';
-            const nowForFilename = new Date();
-            const timestamp = `${nowForFilename.getFullYear()}${(nowForFilename.getMonth() + 1).toString().padStart(2, '0')}${nowForFilename.getDate().toString().padStart(2, '0')}_${nowForFilename.getHours().toString().padStart(2, '0')}${nowForFilename.getMinutes().toString().padStart(2, '0')}`;
-            const finalFileName = `${fileNameSuffix}_${timestamp}.pdf`;
-
-            pdf.save(finalFileName);
-            console.log(`Đã tạo và yêu cầu tải file PDF: ${finalFileName}`);
-
-        } catch (error) {
-            // --- Xử lý lỗi ---
-            console.error("Đã xảy ra lỗi trong quá trình tạo PDF:", error);
-            alert("Đã xảy ra lỗi khi tạo file PDF. Vui lòng kiểm tra console (F12).");
-
-        } finally {
-            // --- KHÔI PHỤC GIAO DIỆN ---
-            console.log("Khôi phục giao diện sau khi tạo PDF...");
-
-            // a) XÓA TIÊU ĐỀ TẠM THỜI khỏi DOM
-            if (tempTitleElement && tempTitleElement.parentNode) {
-                tempTitleElement.remove();
-                console.log("Đã xóa tiêu đề tạm thời khỏi DOM.");
-            } else if (tempTitleElement) {
-                // Đôi khi html2canvas có thể làm mất parentNode một cách kỳ lạ
-                const elementToRemove = document.getElementById('temp-pdf-header');
-                if(elementToRemove) {
-                    elementToRemove.remove();
-                    console.log("Đã xóa tiêu đề tạm thời khỏi DOM (fallback bằng ID).");
-                }
-            }
-            tempTitleElement = null; // Dọn dẹp biến tham chiếu
-
-            // b) Hiển thị lại các nút đã ẩn
-            buttonsToHide.forEach(btn => {
-                btn.style.display = ''; // Xóa style display inline để trở về mặc định CSS
-            });
-            console.log("Đã hiển thị lại các nút .btn-action.");
-
-            // c) Khôi phục trạng thái nút được click
-            if (buttonElement) {
-                buttonElement.disabled = originalButtonDisabledState;
-                buttonElement.innerHTML = originalButtonHtml;
-            }
-            console.log("generateWarehouseReceiptPDF đã hoàn tất (kể cả khi có lỗi).");
-        }
-    }
-
-    // --- Gắn sự kiện vào nút (trong DOMContentLoaded) ---
-    // Đoạn code này giữ nguyên như cũ, chỉ cần đảm bảo gọi đúng hàm generateWarehouseReceiptPDF
-    document.addEventListener("DOMContentLoaded", function() {
-        // ... (Load draft, calculate totals, các listener khác giữ nguyên) ...
-
-        const thePdfButton = document.getElementById('generatePdfOnlyBtn'); // Nút có ID này
-        const theForm = document.getElementById('warehouseImportForm');
-
-        if (thePdfButton && theForm) {
-            thePdfButton.addEventListener('click', function() {
-                console.log("Nút 'Lưu phiếu' (ID: generatePdfOnlyBtn) được nhấn - Chức năng: Xuất PDF.");
-                // --- VALIDATION ---
-                let isFormValid = true;
-                // (Logic validation giữ nguyên...)
-                const requiredHeaderFields = ['receiptCode', 'importDate', 'supplier'];
-                requiredHeaderFields.forEach(id => {
-                    const input = theForm.querySelector(`#${id}`);
-                    if (input && !input.value) { input.classList.add('is-invalid'); isFormValid = false; }
-                    else if (input) { input.classList.remove('is-invalid'); }
-                });
-                if (productContainer.childElementCount === 0) { alert("Chưa có sản phẩm nào trong phiếu."); isFormValid = false; }
-                if (theForm.querySelector('.product-table .is-invalid')) { alert("Có lỗi dữ liệu trong bảng sản phẩm."); isFormValid = false; }
-                if (theForm.querySelector('.totals-container .is-invalid')) { alert("Có lỗi dữ liệu ở phần Giá trị nhập."); isFormValid = false; }
-
-                if (!isFormValid) {
-                    alert("Dữ liệu trên phiếu chưa hợp lệ. Vui lòng sửa lỗi trước khi xuất PDF.");
-                    return; // Dừng nếu không hợp lệ
-                }
-                // --- END VALIDATION ---
-
-                // Gọi hàm tạo PDF, truyền vào chính nút này
-                generateWarehouseReceiptPDF(thePdfButton);
-            });
-            console.log("Đã gắn listener (chức năng PDF) vào nút #generatePdfOnlyBtn.");
-        } else {
-            console.log("Error.");
+        } catch (err) {
+            console.error(err);
+            alert("Lỗi hệ thống khi lưu phiếu.");
         }
     });
+
+
 
 </script>
 
