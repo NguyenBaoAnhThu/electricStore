@@ -13,67 +13,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .form-container {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .table-container {
-            background-color: #fff;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .product-table th {
-            background-color: #212529;
-            color: white;
-            padding: 10px;
-        }
-        .product-table td {
-            padding: 10px;
-            vertical-align: middle;
-        }
-        .totals-container {
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .btn-action {
-            border-radius: 4px;
-            padding: 10px 20px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        .red-bar {
-            background-color: #dc3545;
-            width: 4px;
-            height: 100%;
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-        .delete-btn {
-            padding: 2px 6px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
-        .add-product-btn {
-            background-color: #0d6efd;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 15px;
-        }
+        /* CSS Styles (giữ nguyên như của bạn, thêm style cho validation nếu cần) */
+        .form-container { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .table-container { background-color: #fff; border-radius: 5px; padding: 15px; margin-bottom: 20px; }
+        .product-table th { background-color: #212529; color: white; padding: 10px; text-align: center; vertical-align: middle;}
+        .product-table td { padding: 8px; vertical-align: middle; }
+        .totals-container { background-color: #f8f9fa; border-radius: 5px; padding: 15px; margin-bottom: 20px; }
+        .btn-action { border-radius: 4px; padding: 10px 20px; font-weight: 600; margin-top: 10px; }
+        .red-bar { background-color: #dc3545; width: 4px; height: 100%; position: absolute; left: 0; top: 0; }
+        .delete-btn { padding: 2px 6px; background-color: #dc3545; color: white; border: none; border-radius: 4px; }
+        .add-product-btn { background-color: #0d6efd; color: white; border: none; border-radius: 4px; padding: 8px 15px; }
+        .form-control.is-invalid { border-color: #dc3545; }
+        .validation-message { font-size: 0.875em; margin-top: .25rem; display: block; } /* Use d-none to hide */
+        .text-end { text-align: right !important; }
+        /* Căn giữa nội dung cột STT và nút xóa */
+        .product-table .stt-column, .product-table .action-column { text-align: center; }
+        /* Style cho modal product list */
+        #productModal .table th, #productModal .table td { vertical-align: middle; }
+        #productModal .table th:first-child, #productModal .table td:first-child { text-align: center; }
+
     </style>
 </head>
 <body>
-<!-- Header Fragment -->
 <div th:replace="~{admin/fragments/header :: header}"></div>
-<!-- Sidebar Fragment -->
 <div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
 
 <main class="main-content">
@@ -85,7 +47,6 @@
             </a>
         </div>
 
-        <!-- Alert Messages -->
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
             <span th:text="${successMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -95,9 +56,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <form id="warehouseImportForm" th:action="@{/Admin/transactions/submit-import}" method="post">
-            <!-- Thông tin phiếu nhập -->
-            <div class="form-container position-relative">
+        <form id="warehouseImportForm" th:action="@{/Admin/transactions/submit-import}" method="post" onsubmit="clearDraftBeforeSubmit(event)">
+            <div class="form-container position-relative mb-3">
                 <div class="red-bar"></div>
                 <div class="row g-3">
                     <div class="col-md-3">
@@ -110,9 +70,14 @@
                     </div>
                     <div class="col-md-3">
                         <label for="supplier" class="form-label">Nhà Cung Cấp</label>
-                        <select class="form-select" id="supplier" name="supplier">
+                        <select class="form-select" id="supplier" name="supplier"
+                                onchange="handleSupplierChange(this.value)">
                             <option value="">-- Chọn nhà cung cấp --</option>
-                            <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.name}"></option>
+                            <option th:each="s : ${suppliers}"
+                                    th:value="${s.id}"
+                                    th:selected="${s.id == selectedSupplier}"
+                                    th:text="${s.name}">
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -122,8 +87,7 @@
                 </div>
             </div>
 
-            <!-- Danh sách sản phẩm -->
-            <div class="table-container position-relative">
+            <div class="table-container position-relative mb-3">
                 <div class="red-bar"></div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">Sản Phẩm</h5>
@@ -140,384 +104,1044 @@
                             <th width="120">Mã SP</th>
                             <th>Tên Sản Phẩm</th>
                             <th>Thương Hiệu</th>
-                            <th width="100">Số Lượng</th>
-                            <th width="120">Đơn Giá</th>
-                            <th width="120">Thành Tiền</th>
-                            <th width="50"></th>
+                            <th width="110">Số Lượng</th>
+                            <th width="150">Đơn Giá (VNĐ)</th>
+                            <th width="160">Thành Tiền (VNĐ)</th>
+                            <th width="50">Xóa</th>
                         </tr>
                         </thead>
                         <tbody id="productContainer">
-                        <!-- Products will appear here dynamically -->
                         </tbody>
                     </table>
+                    <div id="no-products-message" class="text-center text-muted mt-3 d-none">
+                        Chưa có sản phẩm nào được thêm.
+                    </div>
                 </div>
             </div>
 
-            <!-- Tổng tiền và chi phí -->
-            <div class="totals-container position-relative">
+            <div class="totals-container position-relative mb-3">
                 <div class="red-bar"></div>
                 <h5 class="fw-bold mb-3">Giá Trị Nhập</h5>
                 <div class="row mb-2">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label">Tổng số lượng nhập:</label>
-                        <span id="totalQuantity" class="ms-2">0</span>
+                        <strong id="totalQuantity" class="ms-2">0</strong>
                     </div>
-                </div>
-                <hr>
-                <div class="row mb-2">
-                    <div class="col-md-12">
+                    <div class="col-md-6 text-end">
                         <label class="form-label">Tổng tiền hàng:</label>
-                        <span id="totalAmount" class="ms-2">0</span>
+                        <strong id="totalAmount" class="ms-2">0</strong>
                     </div>
                 </div>
-                <div class="row mb-3">
+                <hr class="my-2">
+                <div class="row g-3 mb-3">
                     <div class="col-md-4">
-                        <label for="discount" class="form-label">Chiết khấu:</label>
-                        <input type="number" class="form-control" id="discount" name="discount" min="0" th:value="${discount}">
+                        <label for="discount" class="form-label">Chiết khấu (VNĐ):</label>
+                        <input type="text" class="form-control text-end" id="discount" name="discount" value="0" oninput="formatInputCurrency(this)" onblur="formatInputCurrency(this)">
+                        <span class="text-danger validation-message d-none">Giá trị không hợp lệ</span>
                     </div>
                     <div class="col-md-4">
-                        <label for="vat" class="form-label">Thuế VAT:</label>
-                        <input type="number" class="form-control" id="vat" name="vat" min="0" th:value="${vat}">
+                        <label for="vat" class="form-label">Thuế VAT (%):</label>
+                        <input type="number" class="form-control text-end" id="vat" name="vat" min="0" value="0" step="0.1">
+                        <span class="text-danger validation-message d-none">Giá trị không hợp lệ</span>
                     </div>
                     <div class="col-md-4">
-                        <label for="additionalFees" class="form-label">Chi Phí Trả Khác:</label>
-                        <input type="number" class="form-control" id="additionalFees" name="additionalFees" min="0" th:value="${additionalFees}">
+                        <label for="additionalFees" class="form-label">Chi Phí Khác (VNĐ):</label>
+                        <input type="text" class="form-control text-end" id="additionalFees" name="additionalFees" value="0" oninput="formatInputCurrency(this)" onblur="formatInputCurrency(this)">
+                        <span class="text-danger validation-message d-none">Giá trị không hợp lệ</span>
                     </div>
                 </div>
-
-                <hr>
+                <hr class="my-2">
                 <div class="row mb-2">
-                    <div class="col-md-12">
-                        <label class="form-label fw-bold">Tổng Giá Trị Nhập Hàng:</label>
-                        <span id="grandTotal" class="ms-2 fw-bold">0</span>
+                    <div class="col-md-12 text-end">
+                        <label class="form-label fw-bold fs-5">TỔNG GIÁ TRỊ NHẬP HÀNG (VNĐ):</label>
+                        <span id="grandTotal" class="ms-2 fw-bold fs-5 text-danger">0</span>
                     </div>
                 </div>
-                <hr>
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <label for="paidAmount" class="form-label">Tổng tiền đã thanh toán:</label>
-                        <input type="number" class="form-control" id="paidAmount" name="paidAmount" min="0" th:value="${paidAmount}">
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-md-12">
-                        <label class="form-label text-danger">Còn Nợ:</label>
-                        <span id="remainingAmount" class="ms-2 text-danger">0</span>
-                    </div>
-                </div>
+                <hr class="my-2">
             </div>
             <div class="d-flex justify-content-end gap-2">
-                <button type="submit" class="btn btn-success btn-action">
-                    Lưu phiếu
+                <button type="button" id="generatePdfOnlyBtn" class="btn btn-success btn-action">
+                    <i class="fas  fa-save  me-1"></i> Lưu phiếu
                 </button>
                 <button type="button" class="btn btn-danger btn-action" id="cancelBtn">
-                    Hủy phiếu
+                    <i class="fas fa-times me-1"></i> Hủy phiếu
                 </button>
             </div>
         </form>
     </div>
 </main>
 
-<!-- Modal Chọn Sản Phẩm -->
 <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="productModalLabel">
-                    Thêm sản phẩm
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-xl"> <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="productModalLabel">Thêm sản phẩm vào phiếu nhập</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="input-group mb-3">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm theo Mã hoặc Tên sản phẩm..." oninput="filterProducts()">
             </div>
-            <div class="modal-body">
-                <!-- Ô tìm kiếm -->
-                <div class="input-group mb-3">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm sản phẩm..." oninput="filterProducts()">
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;"> <table class="table table-striped table-hover table-sm"> <thead class="table-dark sticky-top"> <tr>
+                <th width="50">
+                    <input type="checkbox" id="selectAll" class="form-check-input" title="Chọn/Bỏ chọn tất cả hiển thị">
+                </th>
+                <th>Mã SP</th>
+                <th>Tên Sản Phẩm</th>
+                <th>Thương Hiệu</th> <th>Đơn Giá Gốc</th>
+                <th>Lượng Tồn</th>
+            </tr>
+            </thead>
+                <tbody id="productList">
+                <tr th:each="p : ${products}" th:id="'modal-product-' + ${p.productID}">
+                    <td class="text-center">
+                        <input type="checkbox"
+                               class="form-check-input product-checkbox"
+                               th:value="${p.productID}"
+                               th:data-code="${p.productCode}"
+                               th:data-name="${p.name}"
+                               th:data-brand="${p.brand?.name ?: ''}"
+                               th:data-price="${p.price ?: 0}" /> </td>
+                    <td th:text="${p.productCode}"></td>
+                    <td th:text="${p.name}"></td>
+                    <td th:text="${p.brand?.name ?: 'N/A'}"></td> <td class="text-end" th:text="${#numbers.formatDecimal(p.price, 0, 'POINT', 0, 'COMMA')} ?: '0'"></td>
+                    <td class="text-end" th:text="${p.stock ?: 0}"></td>
+                </tr>
+                </tbody>
+            </table>
+                <div id="no-modal-products" class="text-center text-muted mt-3 d-none">
+                    Không tìm thấy sản phẩm nào.
                 </div>
-
-                <!-- Danh sách sản phẩm -->
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                        <tr>
-                            <th width="50">
-                                <input type="checkbox" id="selectAll" class="form-check-input">
-                            </th>
-                            <th>Mã SP</th>
-                            <th>Tên Sản Phẩm</th>
-                            <th>Lượng Tồn</th>
-                        </tr>
-                        </thead>
-                        <tbody id="productList">
-                        <!-- Products will be loaded dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <span id="selectedCount" class="me-auto text-muted">0 sản phẩm được chọn</span>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" onclick="addSelectedProducts()">
-                    Thêm
-                </button>
             </div>
         </div>
+        <div class="modal-footer">
+            <span id="selectedCount" class="me-auto text-muted">0 sản phẩm được chọn</span>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button type="button" class="btn btn-primary" onclick="addSelectedProducts()">
+                <i class="fas fa-plus me-1"></i> Thêm vào phiếu
+            </button>
+        </div>
+    </div>
     </div>
 </div>
 
-<!-- Modal Xác nhận Hủy Phiếu -->
 <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title" id="cancelConfirmModalLabel">Xác nhận Hủy Phiếu</h5>
+            <div class="modal-header bg-danger text-white"> <h5 class="modal-title" id="cancelConfirmModalLabel">Xác nhận Hủy Phiếu Nhập</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body d-flex align-items-center">
-                <div class="me-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="black" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
-                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zm.1-6.995a.905.905 0 0 1 1.8 0l-.35 4.5a.55.55 0 0 1-1.1 0l-.35-4.5z"/>
-                    </svg>
+                <div class="me-3 text-warning"> <i class="fas fa-exclamation-triangle fa-3x"></i>
                 </div>
                 <div>
-                    <p class="mb-0">Tạo mới chưa được lưu. Bạn xác nhận sẽ quay lại?</p>
+                    <p class="mb-0">Mọi thay đổi trong phiếu nhập này sẽ bị mất và không thể khôi phục. Bạn có chắc chắn muốn hủy?</p>
                 </div>
             </div>
             <div class="modal-footer border-0 justify-content-center">
-                <button type="button" class="btn btn-primary" id="confirmCancelBtn">Xác nhận</button>
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmCancelBtn">Xác nhận Hủy</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Không</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Footer Fragment -->
 <div th:replace="~{admin/fragments/footer :: footer}"></div>
 
-<!-- Scripts -->
-<script th:src="@{/js/admin/layout.js}"></script>
+<script th:src="@{/js/admin/layout.js}"></script> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Sidebar toggle
-        document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
-            document.body.classList.toggle('sidebar-collapsed');
-        });
+    // --- Khai báo biến toàn cục và Hằng số ---
+    const STORAGE_KEY = 'warehouseImportDraft'; // Key cho localStorage
+    const productContainer = document.getElementById("productContainer");
+    const noProductsMessage = document.getElementById('no-products-message');
 
-        // Initialize variables
-        let index = 0;
-        const form = document.getElementById("warehouseImportForm");
-        const productContainer = document.getElementById("productContainer");
-        const cancelBtn = document.getElementById('cancelBtn');
-        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    // --- Hàm Định dạng và Tính Toán (Sử dụng BigInt) ---
 
-        // Cancel button logic
-        cancelBtn.addEventListener('click', function() {
-            const cancelModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
-            cancelModal.show();
-        });
+    /**
+     * Định dạng một số hoặc chuỗi số thành tiền tệ VNĐ, sử dụng BigInt nếu có thể.
+     * @param {number|string|bigint} amount - Giá trị cần format.
+     * @returns {string} - Chuỗi tiền tệ đã định dạng hoặc 'Không hợp lệ'.
+     */
 
-        confirmCancelBtn.addEventListener('click', function() {
-            window.location.href = '[[@{/Admin/ware-houses}]]';
-        });
 
-        // Add event listeners to update totals when input values change
-        document.getElementById('discount')?.addEventListener('input', calculateTotals);
-        document.getElementById('vat')?.addEventListener('input', calculateTotals);
-        document.getElementById('additionalFees')?.addEventListener('input', calculateTotals);
-        document.getElementById('paidAmount')?.addEventListener('input', calculateTotals);
+    /**
+     * Cập nhật thành tiền cho một hàng sản phẩm và tùy chọn lưu nháp.
+     * @param {HTMLInputElement} input - Input (số lượng hoặc đơn giá) đã thay đổi.
+     * @param {boolean} [shouldSaveDraft=false] - Có lưu nháp sau khi cập nhật không.
+     */
+    function updateRowTotal(input, shouldSaveDraft = false) {
+        const row = input.closest('tr');
+        if (!row) return;
 
-        // Load products for the modal
-        loadProducts();
+        const quantityInput = row.querySelector('.quantity-input');
+        const priceInput = row.querySelector('.price-input');
+        const totalField = row.querySelector('.row-total');
+        const priceValidation = priceInput?.nextElementSibling?.classList.contains('validation-message') ? priceInput.nextElementSibling : null;
+        const quantityValidation = quantityInput?.nextElementSibling?.classList.contains('validation-message') ? quantityInput.nextElementSibling : null; // Assuming validation exists
 
-        // Initial calculation
-        calculateTotals();
-    });
+        let rowHasError = false;
 
-    // Product management functions
-    async function loadProducts() {
         try {
-            let response = await fetch("[[@{/Admin/ware-houses/api/products-choice}]]");
-            let products = await response.json();
+            const quantityString = quantityInput.value.replace(/[^\d]/g, '');
+            const priceString = priceInput.value.replace(/[^\d-]/g, '');
 
-            let productList = document.getElementById("productList");
-            productList.innerHTML = "";
 
-            products.forEach(p => {
-                productList.innerHTML += `
-                <tr>
-                    <td class="text-center">
-                        <input type="checkbox" class="form-check-input product-checkbox" value="${p.productId}"
-                            data-code="${p.productCode}"
-                            data-name="${p.productName}"
-                            data-brand="${p.supplierName}"
-                            data-price="${p.productPrice}"
-                            data-stock="${p.stockQuantity}">
-                    </td>
-                    <td>${p.productCode}</td>
-                    <td>${p.productName}</td>
-                    <td>${p.stockQuantity}</td>
-                </tr>
-                `;
-            });
 
-            // Add event listeners for checkboxes
-            document.querySelectorAll('.product-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', updateSelectedCount);
-            });
+            const quantityBigInt = BigInt(quantityString);
+            const priceBigInt = BigInt(priceString);
 
-            // Setup "Select All" checkbox
-            document.getElementById('selectAll').addEventListener('change', function() {
-                const isChecked = this.checked;
-                document.querySelectorAll('.product-checkbox').forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                updateSelectedCount();
-            });
+            // Validate Quantity
+            if (quantityBigInt <= 0n) { // Số lượng phải > 0
+                quantityInput.classList.add('is-invalid');
+                if(quantityValidation) { quantityValidation.textContent = "SL phải > 0"; quantityValidation.classList.remove('d-none'); }
+                rowHasError = true;
+            } else {
+                quantityInput.classList.remove('is-invalid');
+                if(quantityValidation) quantityValidation.classList.add('d-none');
+            }
+
+            // Validate Price
+            if (priceBigInt < 0n) {
+                priceInput.classList.add('is-invalid');
+                if(priceValidation) { priceValidation.textContent = "Giá không được âm"; priceValidation.classList.remove('d-none'); }
+                rowHasError = true;
+            } else {
+                // Check if formatting was already applied on blur/input
+                if (!priceInput.classList.contains('is-invalid')) {
+                    priceInput.classList.remove('is-invalid');
+                    if(priceValidation) priceValidation.classList.add('d-none');
+                }
+            }
+
+
+            if (rowHasError) {
+                totalField.value = 0n; // Thành tiền = 0 nếu có lỗi
+            } else {
+                const rowTotalBigInt = quantityBigInt * priceBigInt;
+                totalField.value = rowTotalBigInt;
+            }
+
+            calculateTotals(shouldSaveDraft); // Luôn tính tổng sau khi cập nhật hàng
 
         } catch (error) {
-            console.error("Lỗi khi tải danh sách sản phẩm:", error);
+            console.error("Error calculating row total:", error);
+            if (input === priceInput && priceValidation) {
+                priceValidation.textContent = "Giá trị không hợp lệ"; priceValidation.classList.remove('d-none');
+                priceInput.classList.add('is-invalid');
+            } else if (input === quantityInput && quantityValidation) {
+                quantityValidation.textContent = "Giá trị không hợp lệ"; quantityValidation.classList.remove('d-none');
+                quantityInput.classList.add('is-invalid');
+            }
+            totalField.value = 'Lỗi';
+            calculateTotals(shouldSaveDraft); // Tính lại tổng, có thể sẽ báo lỗi tổng
         }
     }
 
-    function updateSelectedCount() {
-        const count = document.querySelectorAll('.product-checkbox:checked').length;
-        document.getElementById('selectedCount').textContent = count + ' sản phẩm được chọn';
-    }
+    /**
+     * Tính toán và cập nhật các giá trị tổng cộng (tổng SL, tổng tiền, tổng giá trị nhập).
+     * @param {boolean} [shouldSaveDraft=false] - Có lưu nháp sau khi tính toán không.
+     */
+    function calculateTotals(shouldSaveDraft = false) {
+        let totalQuantityBigInt = 0n;
+        let totalAmountBigInt = 0n;
+        let hasRowError = false;
 
-    function filterProducts() {
-        let keyword = document.getElementById("searchInput").value.toLowerCase();
-        let rows = document.querySelectorAll("#productList tr");
-        rows.forEach(row => {
-            let code = row.children[1].textContent.toLowerCase();
-            let name = row.children[2].textContent.toLowerCase();
-            row.style.display = code.includes(keyword) || name.includes(keyword) ? "" : "none";
+        document.querySelectorAll('#productContainer tr').forEach(row => {
+            const quantityInput = row.querySelector('.quantity-input');
+            const totalField = row.querySelector('.row-total');
+
+            // Check if row has error state
+            if (row.querySelector('.is-invalid') || totalField.value === 'Lỗi' || totalField.value === 'Không hợp lệ') {
+                hasRowError = true;
+                // Don't process this row for totals if it's invalid
+                return;
+            }
+
+            try {
+                const quantityString = quantityInput.value.replace(/[^\d]/g, '');
+                const totalString = totalField.value.replace(/[^\d-]/g, ''); // Clean formatted total
+
+                const quantity = quantityString === '' ? 0n : BigInt(quantityString);
+                const rowTotal = totalString === '' ? 0n : BigInt(totalString);
+
+                if (quantity < 0n || rowTotal < 0n) {
+                    hasRowError = true; // Treat negative values found here as error
+                    console.warn("Negative value detected during total calculation in row:", row);
+                    return; // Skip row with negative values
+                }
+
+                totalQuantityBigInt += quantity;
+                totalAmountBigInt += rowTotal;
+
+            } catch (error) {
+                console.error("Error processing row for totals:", row, error);
+                hasRowError = true;
+            }
         });
+
+        // Hiển thị thông báo nếu không có sản phẩm
+        toggleNoProductsMessage();
+
+        // If any row had processing errors, show error in totals
+        if (hasRowError) {
+            document.getElementById('totalQuantity').textContent = 'Lỗi';
+            document.getElementById('totalAmount').textContent = 'Lỗi';
+            document.getElementById('grandTotal').textContent = 'Lỗi';
+            if (shouldSaveDraft) saveDraftToLocalStorage(); // Save even if error state exists
+            return;
+        }
+
+        // Calculate Footer Values (Discount, VAT, Fees)
+        try {
+            const discountInput = document.getElementById('discount');
+            const vatInput = document.getElementById('vat');
+            const additionalFeesInput = document.getElementById('additionalFees');
+            // const paidAmountInput = document.getElementById('paidAmount'); // Optional
+
+            const discountStr = discountInput.value.replace(/[^\d-]/g, '');
+            const additionalFeesStr = additionalFeesInput.value.replace(/[^\d-]/g, '');
+            // const paidStr = paidAmountInput ? paidAmountInput.value.replace(/[^\d-]/g, '') : '0';
+
+            const discountBigInt = discountStr === '' ? 0n : BigInt(discountStr);
+            const vatPercent = parseFloat(vatInput.value) || 0;
+            const additionalFeesBigInt = additionalFeesStr === '' ? 0n : BigInt(additionalFeesStr);
+            // const paidBigInt = paidStr === '' ? 0n : BigInt(paidStr);
+
+            let footerHasError = false;
+            // Validate footer inputs
+            if (discountBigInt < 0n) { discountInput.classList.add('is-invalid'); footerHasError = true; } else { discountInput.classList.remove('is-invalid'); }
+            if (vatPercent < 0) { vatInput.classList.add('is-invalid'); footerHasError = true; } else { vatInput.classList.remove('is-invalid'); }
+            if (additionalFeesBigInt < 0n) { additionalFeesInput.classList.add('is-invalid'); footerHasError = true; } else { additionalFeesInput.classList.remove('is-invalid'); }
+            // if (paidBigInt < 0n && paidAmountInput) { paidAmountInput.classList.add('is-invalid'); footerHasError = true; } else if (paidAmountInput) { paidAmountInput.classList.remove('is-invalid'); }
+
+
+            if (footerHasError) {
+                document.getElementById('grandTotal').textContent = 'Lỗi (giá trị âm)';
+                if (shouldSaveDraft) saveDraftToLocalStorage();
+                return;
+            }
+
+            // Calculate grand total with BigInt
+            const amountAfterDiscount = totalAmountBigInt - discountBigInt;
+            const vatMultiplier = BigInt(Math.round(vatPercent * 100)); // Keep 2 decimal places for VAT %
+            const vatAmountBigInt = (amountAfterDiscount * vatMultiplier) / 10000n; // Divide by 100 * 100
+            const grandTotalBigInt = amountAfterDiscount + vatAmountBigInt + additionalFeesBigInt;
+            // const remainingBigInt = grandTotalBigInt - paidBigInt; // Optional
+
+
+            // Update UI
+            document.getElementById('totalQuantity').textContent = totalQuantityBigInt.toString();
+            document.getElementById('totalAmount').textContent = formatCurrency(totalAmountBigInt);
+            document.getElementById('grandTotal').textContent = formatCurrency(grandTotalBigInt < 0n ? 0n : grandTotalBigInt);
+            // document.getElementById('remainingAmount').textContent = formatCurrency(remainingBigInt < 0n ? 0n : remainingBigInt); // Optional
+
+        } catch (error) {
+            console.error("Error calculating final totals:", error);
+            document.getElementById('grandTotal').textContent = 'Lỗi';
+            // Mark related footer inputs as invalid maybe
+        }
+
+        // Save draft if requested
+        if (shouldSaveDraft) {
+            saveDraftToLocalStorage();
+        }
     }
 
+    /** Hiển thị/Ẩn thông báo khi không có sản phẩm */
+    function toggleNoProductsMessage() {
+        if (productContainer.childElementCount === 0) {
+            noProductsMessage?.classList.remove('d-none');
+        } else {
+            noProductsMessage?.classList.add('d-none');
+        }
+    }
+
+
+    // --- Hàm Xử lý Bảng Sản phẩm ---
+
+    /** Thêm các sản phẩm đã chọn từ modal vào bảng chính */
     function addSelectedProducts() {
-        let checkboxes = document.querySelectorAll(".product-checkbox:checked");
-        let container = document.getElementById("productContainer");
+        const checkboxes = document.querySelectorAll("#productList .product-checkbox:checked");
         let added = false;
+        const currentProductIds = new Set(
+            Array.from(productContainer.querySelectorAll('input[name$=".productId"]')).map(input => input.value)
+        );
 
-        checkboxes.forEach((cb, idx) => {
-            let id = cb.value;
-            let code = cb.getAttribute("data-code");
-            let name = cb.getAttribute("data-name");
-            let brand = cb.getAttribute("data-brand");
-            let price = cb.getAttribute("data-price");
+        checkboxes.forEach((cb) => {
+            const id = cb.value;
+            if (!currentProductIds.has(id)) {
+                const code = cb.dataset.code || '';
+                const name = cb.dataset.name || 'N/A';
+                const brand = cb.dataset.brand || 'N/A';
+                const price = cb.dataset.price || '0'; // Giá gốc (dạng string)
 
-            // Check if product already exists in table
-            if (!document.getElementById(`product-row-${id}`)) {
                 let row = document.createElement("tr");
                 row.id = `product-row-${id}`;
+                let currentIndex = productContainer.childElementCount; // Vị trí hiện tại
+
+                const formattedPrice = formatCurrency(price); // Format giá để hiển thị
+                const formattedRowTotal = formatCurrency(price); // Thành tiền ban đầu = Đơn giá * 1
 
                 row.innerHTML = `
-                    <input type="hidden" name="products[${index}].productId" value="${id}">
-                    <td>${container.childElementCount + 1}</td>
+                    <td class="stt-column">${currentIndex + 1}</td>
                     <td>
-                        <input type="text" name="products[${index}].productCode" class="form-control bg-light" value="${code}" readonly>
+                        <input type="hidden" name="products[${currentIndex}].productId" value="${id}">
+                        <input type="text" class="form-control bg-light form-control-sm" value="${code}" readonly title="${code}">
                     </td>
                     <td>
-                        <input type="text" name="products[${index}].productName" class="form-control bg-light" value="${name}" readonly>
+                        <input type="text" class="form-control bg-light form-control-sm" value="${name}" readonly title="${name}">
                     </td>
                     <td>
-                        <input type="text" name="products[${index}].brand" class="form-control bg-light" value="${brand}" readonly>
+                        <input type="text" class="form-control bg-light form-control-sm" value="${brand}" readonly title="${brand}">
                     </td>
                     <td>
-                        <input type="number" name="products[${index}].productQuantity" class="form-control quantity-input"
-                               value="1" required min="1" onchange="updateRowTotal(this)">
+                        <input type="number" name="products[${currentIndex}].productQuantity" class="form-control quantity-input form-control-sm text-end"
+                               value="1" required min="1" step="1" oninput="updateRowTotal(this, true)">
+                         <span class="text-danger validation-message d-none"></span>
                     </td>
                     <td>
-                        <input type="number" name="products[${index}].productPrice" class="form-control price-input"
-                               value="${price}" required min="0" onchange="updateRowTotal(this)">
+                        <input type="text" name="products[${currentIndex}].productPrice" class="form-control price-input form-control-sm text-end"
+                               value="${formattedPrice}" >
+                         <span class="text-danger validation-message d-none">Giá trị không hợp lệ</span>
                     </td>
                     <td>
-                        <input type="text" name="products[${index}].totalAmount" class="form-control bg-light row-total"
-                               value="${price}" readonly>
+                        <input type="text" class="form-control bg-light row-total form-control-sm text-end"
+                               value="${formattedRowTotal}" readonly>
                     </td>
-                    <td class="text-center">
-                        <button type="button" class="delete-btn" onclick="removeProduct('${id}')">
+                    <td class="text-center action-column">
+                        <button type="button" class="delete-btn" onclick="removeProduct('${id}')" title="Xóa sản phẩm này">
                             <i class="fas fa-times"></i>
                         </button>
                     </td>
                 `;
-
-                container.appendChild(row);
-                index++;
+                productContainer.appendChild(row);
                 added = true;
             }
+            cb.checked = false; // Bỏ chọn checkbox sau khi xử lý
         });
 
         if (added) {
-            calculateTotals();
+            reindexProductRows(); // Đánh lại số thứ tự và index
+            calculateTotals(true); // Tính lại tổng và lưu nháp
         }
 
-        // Close the modal
-        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+        updateSelectedCount();
+        const selectAllCheckbox = document.getElementById('selectAll');
+        if (selectAllCheckbox) selectAllCheckbox.checked = false;
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+        if (modal) modal.hide();
+        toggleNoProductsMessage(); // Kiểm tra lại thông báo
     }
 
-    function updateRowTotal(input) {
-        const row = input.closest('tr');
-        const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        const totalField = row.querySelector('.row-total');
-
-        const rowTotal = quantity * price;
-        totalField.value = rowTotal.toFixed(0);
-
-        calculateTotals();
-    }
-
+    /** Xóa một hàng sản phẩm khỏi bảng */
     function removeProduct(id) {
-        let productRow = document.getElementById(`product-row-${id}`);
+        const productRow = document.getElementById(`product-row-${id}`);
         if (productRow) {
             productRow.remove();
-            // Renumber rows
-            document.querySelectorAll('#productContainer tr').forEach((row, idx) => {
-                row.cells[0].textContent = idx + 1;
-            });
-            calculateTotals();
+            reindexProductRows(); // Đánh lại số thứ tự và index
+            calculateTotals(true); // Tính lại tổng và lưu nháp
+            toggleNoProductsMessage(); // Kiểm tra lại thông báo
         }
     }
 
-    function calculateTotals() {
-        // Calculate total quantity and amount
-        let totalQuantity = 0;
-        let totalAmount = 0;
+    /** Đánh lại số thứ tự và cập nhật index cho các input trong bảng sản phẩm */
+    function reindexProductRows() {
+        const rows = productContainer.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+            const sttCell = row.querySelector('.stt-column');
+            if (sttCell) sttCell.textContent = index + 1;
 
-        document.querySelectorAll('.quantity-input').forEach(input => {
-            totalQuantity += parseFloat(input.value) || 0;
+            row.querySelectorAll('input[name^="products["]').forEach(input => {
+                input.name = input.name.replace(/products\[\d+\]/, `products[${index}]`);
+            });
+            row.querySelectorAll('select[name^="products["]').forEach(select => { // If using selects
+                select.name = select.name.replace(/products\[\d+\]/, `products[${index}]`);
+            });
         });
-
-        document.querySelectorAll('.row-total').forEach(input => {
-            totalAmount += parseFloat(input.value) || 0;
-        });
-
-        // Get additional values
-        const discount = parseFloat(document.getElementById('discount').value) || 0;
-        const vat = parseFloat(document.getElementById('vat').value) || 0;
-        const additionalFees = parseFloat(document.getElementById('additionalFees').value) || 0;
-
-        // Calculate grand total
-        const grandTotal = totalAmount - discount + vat + additionalFees;
-
-        // Calculate remaining amount
-        const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
-        const remainingAmount = grandTotal - paidAmount;
-
-        // Update UI
-        document.getElementById('totalQuantity').textContent = totalQuantity;
-        document.getElementById('totalAmount').textContent = formatCurrency(totalAmount);
-        document.getElementById('grandTotal').textContent = formatCurrency(grandTotal);
-        document.getElementById('remainingAmount').textContent = formatCurrency(remainingAmount);
     }
 
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('vi-VN').format(amount);
+
+    // --- Hàm Xử lý Modal Sản phẩm ---
+
+    /** Cập nhật số lượng sản phẩm được chọn trong modal */
+    function updateSelectedCount() {
+        const count = document.querySelectorAll("#productList .product-checkbox:checked").length;
+        document.getElementById('selectedCount').textContent = count + ' sản phẩm được chọn';
     }
+
+    /** Lọc danh sách sản phẩm trong modal */
+    function filterProducts() {
+        const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+        const rows = document.querySelectorAll("#productList tr");
+        let visibleCount = 0;
+        rows.forEach(row => {
+            const code = row.cells[1]?.textContent.toLowerCase() || '';
+            const name = row.cells[2]?.textContent.toLowerCase() || '';
+            const isVisible = code.includes(keyword) || name.includes(keyword);
+            row.style.display = isVisible ? "" : "none";
+            if (isVisible) visibleCount++;
+        });
+        // Hiển thị thông báo nếu không có sản phẩm nào khớp
+        const noModalMsg = document.getElementById('no-modal-products');
+        if (noModalMsg) {
+            noModalMsg.classList.toggle('d-none', visibleCount > 0);
+        }
+    }
+
+    /** Xử lý khi thay đổi nhà cung cấp (ví dụ: tải lại trang với supplierId) */
+    function handleSupplierChange(supplierId) {
+        // Lưu trạng thái nháp hiện tại trước khi tải lại trang
+        // (Quan trọng: người dùng có thể mất dữ liệu nếu không lưu kịp)
+        saveDraftToLocalStorage();
+        // Tải lại trang với tham số supplierId
+        window.location.href = '?supplierId=' + supplierId;
+        // Lưu ý: Cần đảm bảo backend xử lý tham số này và load lại đúng danh sách sản phẩm
+    }
+    /**
+     * Format VNĐ số lớn, tự động xử lý cả dạng E+ (exponential) và thêm 3 số 0 nếu bị tràn.
+     * @param {string|number} input
+     * @returns {string}
+     */
+    /**
+     * Format VNĐ cho số lớn, xử lý cả dạng E (exponential) và chỉ thêm 3 số 0 nếu bị tràn.
+     * Các số thường giữ nguyên.
+     * @param {string|number} input
+     * @returns {string}
+     */
+    /**
+     * Format VNĐ với quy tắc:
+     * - Nếu là exponential (E): parse & hiển thị với dấu chấm + thêm 3 số 0
+     * - Nếu số bình thường < 10 triệu: không format (hiển thị nguyên gốc)
+     * - Nếu >= 10 triệu: dùng .toLocaleString('vi-VN')
+     * @param {string|number} input
+     * @returns {string}
+     */
+    function formatCurrency(input) {
+        try {
+            if (typeof input === 'number') input = input.toString();
+            input = input.toString().trim();
+
+            // Xử lý exponential (E, e)
+            if (/e[\+\-]?\d+/i.test(input)) {
+                const numeric = Number(input);
+                if (isNaN(numeric)) return 'Không hợp lệ';
+
+                const extended = BigInt(Math.floor(numeric)); // Thêm 3 số 0
+                return extended.toLocaleString('vi-VN');
+            }
+
+            // Loại bỏ ký tự không phải số
+            const clean = input.replace(/[^\d]/g, '');
+            if (clean === '') return '0';
+
+            const value = BigInt(clean);
+
+
+
+            // Ngược lại thì format có dấu chấm
+            return value.toLocaleString('vi-VN');
+        } catch (err) {
+            console.warn('Lỗi formatCurrency:', err, input);
+            return 'Không hợp lệ';
+        }
+    }
+
+
+    // --- Hàm Xử lý LocalStorage ---
+
+    /** Lưu trạng thái form hiện tại vào localStorage */
+    function saveDraftToLocalStorage() {
+        try {
+            const draftData = {
+                header: {
+                    receiptCode: document.getElementById('receiptCode')?.value || '',
+                    importDate: document.getElementById('importDate')?.value || '',
+                    supplier: document.getElementById('supplier')?.value || '',
+                    notes: document.getElementById('notes')?.value || ''
+                },
+                products: [],
+                footer: {
+                    // Lưu giá trị đã được làm sạch
+                    discount: document.getElementById('discount')?.value.replace(/[^\d-]/g, '') || '0',
+                    vat: document.getElementById('vat')?.value || '0',
+                    additionalFees: document.getElementById('additionalFees')?.value.replace(/[^\d-]/g, '') || '0',
+                    // paidAmount: document.getElementById('paidAmount')?.value.replace(/[^\d-]/g, '') || '0' // Optional
+                }
+            };
+
+            productContainer.querySelectorAll('tr').forEach(row => {
+                const productIdInput = row.querySelector('input[name$=".productId"]');
+                // Cố gắng lấy thông tin readonly một cách an toàn hơn
+                const codeInput = row.cells[1]?.querySelector('input[readonly]');
+                const nameInput = row.cells[2]?.querySelector('input[readonly]');
+                const brandInput = row.cells[3]?.querySelector('input[readonly]');
+                const quantityInput = row.querySelector('.quantity-input');
+                const priceInput = row.querySelector('.price-input');
+
+                if (productIdInput && quantityInput && priceInput) {
+                    draftData.products.push({
+                        productId: productIdInput.value,
+                        productCode: codeInput ? codeInput.value : '',
+                        productName: nameInput ? nameInput.value : '',
+                        brand: brandInput ? brandInput.value : '',
+                        quantity: quantityInput.value.replace(/[^\d]/g, '') || '1',
+                        price: priceInput.value.replace(/[^\d-]/g, '') || '0' // Lưu giá trị sạch
+                    });
+                }
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
+            // console.log('Draft saved.'); // Debug
+        } catch (error) {
+            console.error("Error saving draft:", error);
+        }
+    }
+
+    /** Tải và áp dụng trạng thái nháp từ localStorage */
+    function loadDraftFromLocalStorage() {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (!savedData) return;
+
+        try {
+            const draftData = JSON.parse(savedData);
+            if (!draftData) return;
+
+            // console.log('Loading draft:', draftData); // Debug
+
+            // --- Restore Header ---
+            if (draftData.header) {
+                document.getElementById('receiptCode').value = draftData.header.receiptCode || '';
+                document.getElementById('importDate').value = draftData.header.importDate || '';
+                document.getElementById('supplier').value = draftData.header.supplier || '';
+                document.getElementById('notes').value = draftData.header.notes || '';
+            }
+
+            // --- Restore Footer (format after setting value) ---
+            if (draftData.footer) {
+                const discountInput = document.getElementById('discount');
+                const vatInput = document.getElementById('vat');
+                const additionalFeesInput = document.getElementById('additionalFees');
+                // const paidInput = document.getElementById('paidAmount'); // Optional
+
+                if(discountInput) discountInput.value = draftData.footer.discount || '0'; // Gán giá trị đã format
+                if(vatInput) vatInput.value = draftData.footer.vat || '0'; // VAT là số %
+                if(additionalFeesInput) additionalFeesInput.value = draftData.footer.additionalFees || '0'; // Gán giá trị đã format
+                // if(paidInput) paidInput.value = formatCurrency(draftData.footer.paidAmount || '0'); // Optional
+            }
+
+            // --- Restore Product Table ---
+            productContainer.innerHTML = ''; // Clear current table
+            if (draftData.products && Array.isArray(draftData.products)) {
+                draftData.products.forEach((productData, index) => {
+                    let row = document.createElement("tr");
+                    row.id = `product-row-${productData.productId}`;
+                    let currentIndex = index;
+
+                    // Re-calculate totals for the loaded row
+                    const quantityBigInt = BigInt(productData.quantity || '1');
+                    const priceBigInt = BigInt(productData.price || '0');
+                    const rowTotalBigInt = quantityBigInt * priceBigInt;
+
+                    row.innerHTML = `
+                        <td class="stt-column">${currentIndex + 1}</td>
+                        <td>
+                            <input type="hidden" name="products[${currentIndex}].productId" value="${productData.productId}">
+                            <input type="text" class="form-control bg-light form-control-sm" value="${productData.productCode || ''}" readonly title="${productData.productCode || ''}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control bg-light form-control-sm" value="${productData.productName || ''}" readonly title="${productData.productName || ''}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control bg-light form-control-sm" value="${productData.brand || ''}" readonly title="${productData.brand || ''}">
+                        </td>
+                        <td>
+                            <input type="number" name="products[${currentIndex}].productQuantity" class="form-control quantity-input form-control-sm text-end"
+                                   value="${productData.quantity || '1'}" required min="1" step="1" oninput="updateRowTotal(this, true)">
+                             <span class="text-danger validation-message d-none"></span>
+                        </td>
+                        <td>
+                            <input type="text" name="products[${currentIndex}].productPrice" class="form-control price-input form-control-sm text-end"
+                                   value="${productData.price}" required >
+                             <span class="text-danger validation-message d-none">Giá trị không hợp lệ</span>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control bg-light row-total form-control-sm text-end"
+                                   value="${rowTotalBigInt}" readonly>
+                        </td>
+                         <td class="text-center action-column">
+                            <button type="button" class="delete-btn" onclick="removeProduct('${productData.productId}')" title="Xóa sản phẩm này">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    `;
+                    productContainer.appendChild(row);
+                });
+                toggleNoProductsMessage(); // Update message visibility
+            }
+
+            // Recalculate all totals AFTER restoring everything
+            // No need to reindex here as we built it sequentially
+            calculateTotals(false); // Calculate totals but don't save again immediately
+
+        } catch (error) {
+            console.error("Error loading draft:", error);
+            localStorage.removeItem(STORAGE_KEY); // Clear corrupted data
+        }
+    }
+
+    /** Xóa dữ liệu nháp trước khi submit form thực sự */
+    function clearDraftBeforeSubmit(event) {
+        // Kiểm tra validation của form trước khi xóa (tùy chọn)
+        // if (!document.getElementById('warehouseImportForm').checkValidity()) {
+        //     // Ngăn submit nếu form không hợp lệ và không xóa nháp
+        //     event.preventDefault();
+        //     console.log("Form invalid, submit prevented.");
+        //     return;
+        // }
+        console.log("Form submitting, clearing draft...");
+        localStorage.removeItem(STORAGE_KEY);
+        // Form sẽ tiếp tục submit bình thường
+    }
+
+
+
+
+
+    // --- Khởi tạo và Gắn Event Listeners ---
+    document.addEventListener("DOMContentLoaded", function() {
+        // Sidebar toggle (giả sử có trong layout.js)
+        // document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+        //     document.body.classList.toggle('sidebar-collapsed');
+        // });
+
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const productListBody = document.getElementById('productList');
+        const selectAllCheckbox = document.getElementById('selectAll');
+
+        // Load draft data first
+        loadDraftFromLocalStorage();
+
+        // Initial calculation based on loaded/default data
+        calculateTotals(false); // Calculate without saving initially
+
+        // Event Listeners for saving draft on changes
+        document.getElementById('receiptCode')?.addEventListener('blur', saveDraftToLocalStorage);
+        document.getElementById('importDate')?.addEventListener('change', saveDraftToLocalStorage);
+        document.getElementById('supplier')?.addEventListener('change', () => {
+            // Supplier change might reload page, save is handled by handleSupplierChange
+            // saveDraftToLocalStorage(); // Save if not reloading page
+        });
+        document.getElementById('notes')?.addEventListener('blur', saveDraftToLocalStorage);
+        document.getElementById('discount')?.addEventListener('blur', () => calculateTotals(true)); // Save after formatting and calculation
+        document.getElementById('vat')?.addEventListener('input', () => calculateTotals(true));     // Save on input for %
+        document.getElementById('additionalFees')?.addEventListener('blur', () => calculateTotals(true)); // Save after formatting and calculation
+        // document.getElementById('paidAmount')?.addEventListener('blur', () => calculateTotals(true)); // Optional
+
+        // Cancel button logic
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                const cancelModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+                cancelModal.show();
+            });
+        }
+
+        // Confirm Cancel button logic
+        if (confirmCancelBtn) {
+            confirmCancelBtn.addEventListener('click', function() {
+                localStorage.removeItem(STORAGE_KEY); // Clear draft on confirmed cancel
+                window.location.href = document.querySelector('.btn-secondary').href; // Go back using the "Quay lại" link href
+            });
+        }
+
+        // Modal product list listeners
+        if (productListBody) {
+            productListBody.addEventListener('change', function(event) {
+                if (event.target.classList.contains('product-checkbox')) {
+                    updateSelectedCount();
+                }
+            });
+        }
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const checkboxes = productListBody?.querySelectorAll('.product-checkbox');
+                checkboxes?.forEach(cb => {
+                    if (cb.closest('tr').style.display !== 'none') { // Only affect visible rows
+                        cb.checked = selectAllCheckbox.checked;
+                    }
+                });
+                updateSelectedCount();
+            });
+        }
+
+        // Add event listener to form submit
+        const form = document.getElementById('warehouseImportForm');
+        if (form) {
+            // The onsubmit="clearDraftBeforeSubmit(event)" handles this now
+            // form.addEventListener('submit', clearDraftBeforeSubmit);
+        } else {
+            console.error("Form with ID 'warehouseImportForm' not found.");
+        }
+
+        console.log("Warehouse import script initialized.");
+    });
+
+
+    /**
+     * Chụp ảnh phần tử phiếu nhập kho và tạo file PDF để tải về.
+     * - TẠM THỜI thêm tiêu đề vào DOM chỉ để chụp ảnh.
+     * - ẨN các nút (.btn-action) trước khi chụp.
+     * Quản lý trạng thái của nút được nhấn và khôi phục giao diện sau khi hoàn tất.
+     *
+     * @param {HTMLButtonElement} buttonElement - Nút HTML đã kích hoạt hàm này (ví dụ: #generatePdfOnlyBtn).
+     */
+    async function generateWarehouseReceiptPDF(buttonElement) {
+        // 1. Xác định phần tử gốc chứa toàn bộ nội dung phiếu cần chụp
+        const receiptElement = document.getElementById('warehouseImportForm');
+        if (!receiptElement) {
+            console.error("Lỗi: Không tìm thấy phần tử #warehouseImportForm để chụp ảnh.");
+            alert("Lỗi: Không tìm thấy nội dung phiếu để xuất PDF.");
+            return;
+        }
+
+        // --- Lưu trạng thái ban đầu của nút ---
+        const originalButtonHtml = buttonElement ? buttonElement.innerHTML : '';
+        const originalButtonDisabledState = buttonElement ? buttonElement.disabled : false;
+
+        // --- Tìm các nút cần ẩn ---
+        const buttonsToHide = receiptElement.querySelectorAll('.btn-action');
+
+        // --- Biến để lưu tham chiếu đến tiêu đề tạm thời ---
+        let tempTitleElement = null;
+
+        // 2. Sử dụng try...catch...finally để đảm bảo khôi phục giao diện
+        try {
+            // --- CHUẨN BỊ GIAO DIỆN TRƯỚC KHI CHỤP ---
+
+            // a) Ẩn các nút không mong muốn
+            buttonsToHide.forEach(btn => {
+                btn.style.display = 'none'; // Dùng display:none để ẩn hoàn toàn
+            });
+            console.log("Đã tạm thời ẩn các nút .btn-action.");
+
+            // // b) Thay đổi trạng thái nút được click
+            // if (buttonElement) {
+            //     buttonElement.style.display = ''; // Đảm bảo nút này không bị ẩn bởi lệnh trên
+            //     buttonElement.disabled = true;
+            //     buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Chuẩn bị...';
+            // }
+
+            // c) TẠM THỜI THÊM TIÊU ĐỀ VÀO DOM
+            tempTitleElement = document.createElement('div');
+            // Style cho tiêu đề (giống như cách thêm vào HTML trực tiếp trước đó)
+            tempTitleElement.style.textAlign = 'center';
+            tempTitleElement.style.marginBottom = '25px';
+            tempTitleElement.style.marginTop = '10px';
+            tempTitleElement.style.borderBottom = '1px solid #dee2e6';
+            tempTitleElement.style.paddingBottom = '15px';
+            tempTitleElement.setAttribute('id', 'temp-pdf-header'); // Đặt ID để chắc chắn có thể xóa
+
+            // Tạo nội dung tiêu đề H2
+            const titleH2 = document.createElement('h2');
+            titleH2.style.fontWeight = 'bold';
+            titleH2.style.marginBottom = '5px';
+            titleH2.style.textTransform = 'uppercase';
+            titleH2.textContent = 'PHIẾU NHẬP KHO'; // Nội dung tiêu đề
+
+            // Tạo nội dung ngày giờ
+            const dateP = document.createElement('p');
+            dateP.style.marginBottom = '0';
+            dateP.style.fontSize = '0.9em';
+            const dateSpan = document.createElement('span');
+            const now = new Date(); // Lấy ngày giờ hiện tại
+            // Format ngày giờ (ví dụ: 15/04/2025 08:08)
+            const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            dateSpan.textContent = formattedDate;
+            dateP.appendChild(document.createTextNode('Ngày lập phiếu: '));
+            dateP.appendChild(dateSpan);
+
+            // Gắn H2 và P vào div container tiêu đề
+            tempTitleElement.appendChild(titleH2);
+            tempTitleElement.appendChild(dateP);
+
+            // Chèn div tiêu đề này vào ĐẦU của form (trước phần tử con đầu tiên)
+            // receiptElement.prepend(tempTitleElement); // Phương thức đơn giản nhất
+            // Hoặc chèn trước phần tử cụ thể đầu tiên nếu biết chắc chắn
+            const firstRealContent = receiptElement.querySelector('.form-container, .table-container');
+            if (firstRealContent) {
+                receiptElement.insertBefore(tempTitleElement, firstRealContent);
+            } else {
+                receiptElement.prepend(tempTitleElement); // Fallback
+            }
+            console.log("Đã tạm thời thêm tiêu đề vào DOM để chuẩn bị chụp ảnh.");
+
+            // --- THỰC HIỆN CHỤP ẢNH ---
+            if (buttonElement) {
+                buttonElement.innerHTML = '<i class="fas fa-camera me-1"></i> Đang chụp ảnh...';
+            }
+            console.log("Bắt đầu chụp ảnh form (với tiêu đề tạm thời, không có nút)...");
+
+            const canvas = await html2canvas(receiptElement, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                // Lưu ý: Vì đã dùng display:none, không cần `ignoreElements` cho nút nữa.
+                // Nếu không dùng display:none, bạn có thể dùng:
+                // ignoreElements: (element) => element.classList.contains('btn-action') || element.id === 'temp-pdf-header' // Bỏ qua nút và cả tiêu đề tạm nếu cần
+            });
+
+            console.log("Đã chụp ảnh xong. Tiêu đề và nút không mong muốn đã được xử lý.");
+
+            // --- TẠO FILE PDF (Logic jsPDF giữ nguyên) ---
+            if (buttonElement) {
+                buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang tạo PDF...';
+            }
+            console.log("Đang tạo cấu trúc file PDF...");
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', putOnlyUsedFonts: true });
+
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const pageMargin = 10;
+            const effectivePdfWidth = pdfWidth - (pageMargin * 2);
+            const effectivePdfHeight = pdfHeight - (pageMargin * 2);
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const canvasRatio = canvasWidth / canvasHeight;
+            let imgFinalWidth = effectivePdfWidth;
+            let imgFinalHeight = imgFinalWidth / canvasRatio;
+
+            // Xử lý phân trang nếu cần
+            if (imgFinalHeight > effectivePdfHeight) {
+                console.log("Nội dung dài, thực hiện phân trang...");
+                let remainingCanvasHeight = canvasHeight;
+                let sourceY = 0;
+                let pageCounter = 0;
+                while (remainingCanvasHeight > 0) {
+                    pageCounter++;
+                    let heightToDrawOnPagePx = Math.min(remainingCanvasHeight, effectivePdfHeight * canvasWidth / effectivePdfWidth);
+                    const tempPageCanvas = document.createElement('canvas');
+                    tempPageCanvas.width = canvasWidth;
+                    tempPageCanvas.height = heightToDrawOnPagePx;
+                    const tempPageCtx = tempPageCanvas.getContext('2d');
+                    tempPageCtx.drawImage(canvas, 0, sourceY, canvasWidth, heightToDrawOnPagePx, 0, 0, canvasWidth, heightToDrawOnPagePx);
+                    const pageImgData = tempPageCanvas.toDataURL('image/png', 1.0);
+                    let pageImgHeightMm = heightToDrawOnPagePx * effectivePdfWidth / canvasWidth;
+
+                    if (pageCounter > 1) { // Chỉ thêm trang mới từ trang thứ 2 trở đi
+                        pdf.addPage();
+                    }
+                    pdf.addImage(pageImgData, 'PNG', pageMargin, pageMargin, effectivePdfWidth, pageImgHeightMm);
+
+                    remainingCanvasHeight -= heightToDrawOnPagePx;
+                    sourceY += heightToDrawOnPagePx;
+                }
+            } else {
+                // Vừa 1 trang
+                console.log("Nội dung vừa 1 trang.");
+                imgFinalHeight = Math.min(imgFinalHeight, effectivePdfHeight);
+                imgFinalWidth = imgFinalHeight * canvasRatio;
+                imgFinalWidth = Math.min(imgFinalWidth, effectivePdfWidth);
+                const offsetX = pageMargin + (effectivePdfWidth - imgFinalWidth) / 2;
+                const offsetY = pageMargin;
+                pdf.addImage(imgData, 'PNG', offsetX, offsetY, imgFinalWidth, imgFinalHeight);
+            }
+
+            // --- Lưu file PDF ---
+            const receiptCodeInput = document.getElementById('receiptCode');
+            const receiptCode = receiptCodeInput ? receiptCodeInput.value.trim() : '';
+            const fileNameSuffix = receiptCode || 'PhieuNhapKho';
+            const nowForFilename = new Date();
+            const timestamp = `${nowForFilename.getFullYear()}${(nowForFilename.getMonth() + 1).toString().padStart(2, '0')}${nowForFilename.getDate().toString().padStart(2, '0')}_${nowForFilename.getHours().toString().padStart(2, '0')}${nowForFilename.getMinutes().toString().padStart(2, '0')}`;
+            const finalFileName = `${fileNameSuffix}_${timestamp}.pdf`;
+
+            pdf.save(finalFileName);
+            console.log(`Đã tạo và yêu cầu tải file PDF: ${finalFileName}`);
+
+        } catch (error) {
+            // --- Xử lý lỗi ---
+            console.error("Đã xảy ra lỗi trong quá trình tạo PDF:", error);
+            alert("Đã xảy ra lỗi khi tạo file PDF. Vui lòng kiểm tra console (F12).");
+
+        } finally {
+            // --- KHÔI PHỤC GIAO DIỆN ---
+            console.log("Khôi phục giao diện sau khi tạo PDF...");
+
+            // a) XÓA TIÊU ĐỀ TẠM THỜI khỏi DOM
+            if (tempTitleElement && tempTitleElement.parentNode) {
+                tempTitleElement.remove();
+                console.log("Đã xóa tiêu đề tạm thời khỏi DOM.");
+            } else if (tempTitleElement) {
+                // Đôi khi html2canvas có thể làm mất parentNode một cách kỳ lạ
+                const elementToRemove = document.getElementById('temp-pdf-header');
+                if(elementToRemove) {
+                    elementToRemove.remove();
+                    console.log("Đã xóa tiêu đề tạm thời khỏi DOM (fallback bằng ID).");
+                }
+            }
+            tempTitleElement = null; // Dọn dẹp biến tham chiếu
+
+            // b) Hiển thị lại các nút đã ẩn
+            buttonsToHide.forEach(btn => {
+                btn.style.display = ''; // Xóa style display inline để trở về mặc định CSS
+            });
+            console.log("Đã hiển thị lại các nút .btn-action.");
+
+            // c) Khôi phục trạng thái nút được click
+            if (buttonElement) {
+                buttonElement.disabled = originalButtonDisabledState;
+                buttonElement.innerHTML = originalButtonHtml;
+            }
+            console.log("generateWarehouseReceiptPDF đã hoàn tất (kể cả khi có lỗi).");
+        }
+    }
+
+    // --- Gắn sự kiện vào nút (trong DOMContentLoaded) ---
+    // Đoạn code này giữ nguyên như cũ, chỉ cần đảm bảo gọi đúng hàm generateWarehouseReceiptPDF
+    document.addEventListener("DOMContentLoaded", function() {
+        // ... (Load draft, calculate totals, các listener khác giữ nguyên) ...
+
+        const thePdfButton = document.getElementById('generatePdfOnlyBtn'); // Nút có ID này
+        const theForm = document.getElementById('warehouseImportForm');
+
+        if (thePdfButton && theForm) {
+            thePdfButton.addEventListener('click', function() {
+                console.log("Nút 'Lưu phiếu' (ID: generatePdfOnlyBtn) được nhấn - Chức năng: Xuất PDF.");
+                // --- VALIDATION ---
+                let isFormValid = true;
+                // (Logic validation giữ nguyên...)
+                const requiredHeaderFields = ['receiptCode', 'importDate', 'supplier'];
+                requiredHeaderFields.forEach(id => {
+                    const input = theForm.querySelector(`#${id}`);
+                    if (input && !input.value) { input.classList.add('is-invalid'); isFormValid = false; }
+                    else if (input) { input.classList.remove('is-invalid'); }
+                });
+                if (productContainer.childElementCount === 0) { alert("Chưa có sản phẩm nào trong phiếu."); isFormValid = false; }
+                if (theForm.querySelector('.product-table .is-invalid')) { alert("Có lỗi dữ liệu trong bảng sản phẩm."); isFormValid = false; }
+                if (theForm.querySelector('.totals-container .is-invalid')) { alert("Có lỗi dữ liệu ở phần Giá trị nhập."); isFormValid = false; }
+
+                if (!isFormValid) {
+                    alert("Dữ liệu trên phiếu chưa hợp lệ. Vui lòng sửa lỗi trước khi xuất PDF.");
+                    return; // Dừng nếu không hợp lệ
+                }
+                // --- END VALIDATION ---
+
+                // Gọi hàm tạo PDF, truyền vào chính nút này
+                generateWarehouseReceiptPDF(thePdfButton);
+            });
+            console.log("Đã gắn listener (chức năng PDF) vào nút #generatePdfOnlyBtn.");
+        } else {
+            console.log("Error.");
+        }
+    });
+
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

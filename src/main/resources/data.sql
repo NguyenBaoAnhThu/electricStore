@@ -1,3 +1,4 @@
+use electricStore;
 # Thêm dữ liệu vào Employee_Positions
 INSERT INTO employee_positions (position_name, position_description)
 VALUES ('Nhân Viên Kinh Doanh', 'Phụ trách tìm kiếm khách hàng và phát triển thị trường'),
@@ -5,7 +6,7 @@ VALUES ('Nhân Viên Kinh Doanh', 'Phụ trách tìm kiếm khách hàng và ph�
        ('Nhân Viên Bán Hàng', 'Trực tiếp bán hàng tại cửa hàng'),
        ('Nhân Viên Thủ Kho', 'Quản lý nhập xuất kho và tồn kho'),
        ('Nhân Viên Kế Toán', 'Xử lý các vấn đề tài chính và kế toán');
-use electricStore;
+
 # Thêm dữ liệu vào Roles
 INSERT INTO role (role_name)
 VALUES ('ROLE_ADMIN'),
@@ -13,69 +14,94 @@ VALUES ('ROLE_ADMIN'),
        ('ROLE_BUSINESS'),
        ('ROLE_SALES'),
        ('ROLE_WAREHOUSE');
+
+# Thêm dữ liệu vào Users (bổ sung thêm 6 người dùng mới)
 INSERT INTO user (username, encryted_password, email, enabled, created_at, updated_at)
-VALUES ('admin123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'admin@gmail.com', true, NOW(),
-        NOW()),
-       ('hoang123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'hoang12@gmail.com', true, NOW(),
-        NOW()),
-       ('vanhau123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'vanhau12@gmail.com', true, NOW(),
-        NOW()),
-       ('tuantai345', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'tuantai12@gmail.com', true,
-        NOW(), NOW()),
-       ('thitrang05', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'trang12@gmail.com', true, NOW(),
-        NOW()),
-       ('hoaian678', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'hoaian123@gmail.com', true, NOW(),
-        NOW()),
-       ('khiem980', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'khiem12@gmail.com', true, NOW(),
-        NOW()),
-       ('nguyenduc123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'duc12@gmail.com', true, NOW(),
-        NOW()),
-       ('phuongnha123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'phuong12@gmail.com', true,
-        NOW(), NOW()),
-       ('vantuan', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'tuan56@gmail.com', true, NOW(),
-        NOW());
+VALUES ('admin123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'admin@gmail.com', true, NOW(), NOW()),
+       ('hoang123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'hoang12@gmail.com', true, NOW(), NOW()),
+       ('vanhau123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'vanhau12@gmail.com', true, NOW(), NOW()),
+       ('tuantai345', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'tuantai12@gmail.com', true, NOW(), NOW()),
+       ('thitrang05', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'trang12@gmail.com', true, NOW(), NOW()),
+       ('hoaian678', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'hoaian123@gmail.com', true, NOW(), NOW()),
+       ('khiem980', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'khiem12@gmail.com', true, NOW(), NOW()),
+       ('nguyenduc123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'duc12@gmail.com', true, NOW(), NOW()),
+       ('phuongnha123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'phuong12@gmail.com', true, NOW(), NOW()),
+       ('vantuan', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'tuan56@gmail.com', true, NOW(), NOW()),
+       ('thihuong456', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'huong456@gmail.com', true, NOW(), NOW()),
+       ('quangminh789', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'minh789@gmail.com', true, NOW(), NOW()),
+       ('thimai234', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'mai234@gmail.com', true, NOW(), NOW()),
+       ('dinhtrung567', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'trung567@gmail.com', true, NOW(), NOW()),
+       ('thithanh890', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'thanh890@gmail.com', true, NOW(), NOW()),
+       ('vanhung123', '$2a$10$y/odQPEQIU.RifEy1Steu.5ZuCmTRGQUB3ntp6.bWM/kw/29huOZK', 'hung123@gmail.com', true, NOW(), NOW());
+
 # Gán Roles cho Users
 INSERT INTO user_role (user_id, role_id)
-VALUES (1, 1), -- admin123 có role ADMIN
-       (2, 2), -- hoang123 có role EMPLOYEE
-       (3, 2), -- vanhau123 có role EMPLOYEE
-       (4, 2), -- tuantai345 có role EMPLOYEE
-       (5, 2), -- thitrang05 có role EMPLOYEE
-       (6, 3), -- hoaian678 có role CUSTOMER
-       (7, 3), -- khiem980 có role CUSTOMER
-       (8, 3), -- nguyenduc123 có role CUSTOMER
-       (9, 3), -- phuongnha123 có role CUSTOMER
-       (10, 3);
+VALUES (1, 1),  -- admin123 có role ADMIN
+       (2, 2),  -- hoang123 có role EMPLOYEE
+       (3, 2),  -- vanhau123 có role EMPLOYEE
+       (4, 3),  -- tuantai345 có role BUSINESS
+       (5, 3),  -- thitrang05 có role BUSINESS
+       (6, 4),  -- hoaian678 có role SALES
+       (7, 4),  -- khiem980 có role SALES
+       (8, 5),  -- nguyenduc123 có role WAREHOUSE
+       (9, 5),  -- phuongnha123 có role WAREHOUSE
+       (10, 2), -- vantuan có role EMPLOYEE
+       (11, 2), -- thihuong456 có role EMPLOYEE
+       (12, 4), -- quangminh789 có role SALES
+       (13, 2), -- thimai234 có role EMPLOYEE
+       (14, 5), -- dinhtrung567 có role WAREHOUSE
+       (15, 3), -- thithanh890 có role BUSINESS
+       (16, 2); -- vanhung123 có role EMPLOYEE
 
-# Thêm dữ liệu vào Employees
-INSERT INTO employees (employee_name, employee_birthday, employee_address, employee_phone, employee_work, position_id,
-                       is_disabled, user_id)
-VALUES ('Nguyễn Hoàng', '2000-12-12', 'Hà Nội', '0933371781', 'Full-time', 1, false, 2),
-       ('Trương Văn Hậu', '2001-09-12', 'Hà Nội', '0955571781', 'Full-time', 2, false, 3),
-       ('Nguyễn Tuấn Tài', '1998-12-12', 'Hà Nội', '0944441781', 'Full-time', 3, false, 4),
-       ('Ngô Thị Trang', '2002-02-12', 'Hà Nội', '0955555781', 'Part-time', 5, false, 5);
+# Thêm dữ liệu vào Employees (15 nhân viên được gán user_id)
+INSERT INTO employees (employee_name, employee_birthday, employee_address, employee_phone, employee_work, position_id, is_disabled, user_id)
+VALUES
+    ('Nguyễn Hoàng', '2000-12-12', 'Hà Nội', '0933371781', 'Full-time', 1, false, 2),
+    ('Trương Văn Hậu', '2001-09-12', 'Hà Nội', '0955571781', 'Full-time', 2, false, 3),
+    ('Nguyễn Tuấn Tài', '1998-12-12', 'Hà Nội', '0944441781', 'Full-time', 3, false, 4),
+    ('Ngô Thị Trang', '2002-02-12', 'Hà Nội', '0955555781', 'Part-time', 5, false, 5),
+    ('Lê Hoài An', '1995-05-15', 'Hồ Chí Minh', '0912345678', 'Full-time', 1, false, 6),
+    ('Trần Minh Khiêm', '1999-08-23', 'Đà Nẵng', '0987654321', 'Full-time', 3, false, 7),
+    ('Nguyễn Đức', '1997-11-30', 'Hải Phòng', '0977123456', 'Full-time', 4, false, 8),
+    ('Lê Phương Nha', '2000-04-17', 'Cần Thơ', '0966789012', 'Part-time', 2, false, 9),
+    ('Nguyễn Văn Tuấn', '1996-07-22', 'Huế', '0944567890', 'Full-time', 5, false, 10),
+    ('Phạm Thị Hương', '1993-10-05', 'Nha Trang', '0922123456', 'Full-time', 1, false, 11),
+    ('Đỗ Quang Minh', '1998-01-20', 'Vũng Tàu', '0911234567', 'Part-time', 3, false, 12),
+    ('Hoàng Thị Mai', '1994-06-28', 'Quảng Ninh', '0933456789', 'Full-time', 2, false, 13),
+    ('Vũ Đình Trung', '1992-03-14', 'Hà Nội', '0955678901', 'Full-time', 4, false, 14),
+    ('Trần Thị Thanh', '1997-09-08', 'Đà Nẵng', '0966890123', 'Part-time', 5, false, 15),
+    ('Nguyễn Văn Hùng', '1991-12-25', 'Hồ Chí Minh', '0988901234', 'Full-time', 1, false, 16);
+
 # Thêm dữ liệu vào customer
 INSERT INTO customers (customer_name, phone_number, address, email, birth_date, is_disabled)
-VALUES ('Trần Hoài An', '0981828128', 'Hà Nội', 'hoaian@gmail.com', '2002-06-12', false),
-       ('Tuấn Khiêm', '0971218291', 'Đà Nẵng', 'tuankhiem@gmail.com', '2002-06-12', false),
-       ('Nguyễn Văn Đức', '0912118128', 'Huế', 'vanduc@gmail.com', '2002-06-14', false),
-       ('Phương Nha', '0989129112', 'Hà Nội', 'phuongnha@gmail.com', '2001-06-12', false),
-       ('Trần Văn Tuấn', '0912991991', 'Hải Phòng', 'vantuan@gmail.com', '2002-12-12', false);
+VALUES
+    ('Trần Hoài An', '0981828128', 'Hà Nội', 'hoaian@gmail.com', '2002-06-12', false),
+    ('Tuấn Khiêm', '0971218291', 'Đà Nẵng', 'tuankhiem@gmail.com', '2002-06-12', false),
+    ('Nguyễn Văn Đức', '0912118128', 'Huế', 'vanduc@gmail.com', '2002-06-14', false),
+    ('Phương Nha', '0989129112', 'Hà Nội', 'phuongnha@gmail.com', '2001-06-12', false),
+    ('Trần Văn Tuấn', '0912991991', 'Hải Phòng', 'vantuan@gmail.com', '2002-12-12', false),
+    ('Nguyễn Thị Hoa', '0912345678', 'Hồ Chí Minh', 'hoa.nguyen@gmail.com', '1995-04-15', false),
+    ('Lê Văn Minh', '0923456789', 'Cần Thơ', 'minhle@gmail.com', '1990-08-21', false),
+    ('Trần Thị Lan', '0934567890', 'Đà Lạt', 'lantran@gmail.com', '1988-11-30', false),
+    ('Phạm Quốc Bảo', '0945678901', 'Nha Trang', 'baopham@gmail.com', '1993-02-25', false),
+    ('Vũ Thị Thu', '0956789012', 'Vũng Tàu', 'thuvu@gmail.com', '1997-07-10', false),
+    ('Đỗ Văn Hùng', '0967890123', 'Quảng Ninh', 'hungdo@gmail.com', '1985-09-18', false),
+    ('Nguyễn Thành Nam', '0978901234', 'Bình Dương', 'namnguyen@gmail.com', '1992-12-05', false),
+    ('Mai Thị Linh', '0989012345', 'Hà Nội', 'linhmai@gmail.com', '1998-03-22', false),
+    ('Hoàng Văn Thắng', '0990123456', 'Hải Dương', 'thanghoang@gmail.com', '1994-05-17', false),
+    ('Trần Thị Thảo', '0901234567', 'Thanh Hóa', 'thaotran@gmail.com', '1996-10-08', false);
+
 INSERT INTO admins (admin_name, department, user_id)
 VALUES ('Nguyễn Quản Trị', 'IT', 1);
 
 
+# Thêm dữ liệu vào categories (chỉ giữ 3 danh mục)
 INSERT INTO categories (name, description, create_at, update_at)
 VALUES ('Điện thoại', 'Các dòng điện thoại thông minh mới nhất', NOW(), NOW()),
        ('Máy tính bảng', 'Máy tính bảng phục vụ công việc và giải trí', NOW(), NOW()),
-       ('Laptop', 'Laptop dành cho học tập, làm việc, gaming', NOW(), NOW()),
-       ('Tai nghe', 'Tai nghe chất lượng cao, có dây và không dây', NOW(), NOW()),
-       ('Tay cầm', 'Tay cầm chơi game các loại', NOW(), NOW()),
-       ('Hàng cũ', 'Sản phẩm đã qua sử dụng, chất lượng tốt', NOW(), NOW()),
-       ('Khuyến mãi', 'Các sản phẩm đang được giảm giá', NOW(), NOW()),
-       ('Phụ kiện', 'Các loại phụ kiện điện thoại và máy tính', NOW(), NOW());
+       ('Laptop', 'Laptop dành cho học tập, làm việc, gaming', NOW(), NOW());
 
-# Thêm dữ liệu vào brand
+# Thêm dữ liệu vào brand (giữ nguyên)
 INSERT INTO brands (name, status, country, create_at, update_at)
 VALUES ('Apple', true, 'Mỹ', NOW(), NOW()),
        ('Samsung', true, 'Hàn Quốc', NOW(), NOW()),
@@ -88,6 +114,7 @@ VALUES ('Apple', true, 'Mỹ', NOW(), NOW()),
        ('Oppo', true, 'Trung Quốc', NOW(), NOW()),
        ('Lenovo', true, 'Trung Quốc', NOW(), NOW());
 
+# Thêm dữ liệu vào supplier (giữ nguyên)
 INSERT INTO suppliers (supplier_code, name, address, phone, email)
 VALUES ('AP001', 'Apple Store', 'California, USA', '0981921280', 'apple@gmail.com'),
        ('SS001', 'Samsung Store', 'Seoul, Korea', '0911921281', 'samsung@gmail.com'),
@@ -99,73 +126,93 @@ VALUES ('AP001', 'Apple Store', 'California, USA', '0981921280', 'apple@gmail.co
        ('HW001', 'Huawei Store', 'Shenzhen, China', '0981921287', 'huawei@gmail.com'),
        ('LG001', 'LG Electronics', 'Seoul, Korea', '0981921288', 'lg@gmail.com'),
        ('LN001', 'Lenovo Shop', 'Shanghai, China', '0981921289', 'lenovo@gmail.com');
-INSERT INTO products (create_at, description, main_image_url, name, price, stock, update_at, brand_id, category_id, supplier_id)
+
+# Thêm dữ liệu vào products (sửa lại mã sản phẩm theo SP0001, SP0002, ...)
+INSERT INTO products (create_at, description, main_image_url, name, price, stock, update_at, brand_id, category_id, supplier_id, product_code)
 VALUES
--- Smartphones
-(NOW(), 'Xiaomi Redmi Note 12 Pro - Hiệu năng ổn định', 'https://byvn.net/2qP6', 'Xiaomi Redmi Note 12 Pro', 8990000, 100, NOW(), 6, 1, 4),
-(NOW(), 'Realme GT Neo 5 - Sạc siêu nhanh', 'https://byvn.net/kvZe', 'Realme GT Neo 5', 10990000, 80, NOW(), 9, 1, 9),
-(NOW(), 'Oppo Find X5 Pro - Thiết kế sang trọng', 'https://byvn.net/XHnW', 'Oppo Find X5 Pro', 19990000, 50, NOW(), 9, 1, 3),
-(NOW(), 'Vivo X90 Pro - Camera chuyên nghiệp', 'https://byvn.net/3hgh', 'Vivo X90 Pro', 22990000, 60, NOW(), 1, 1, 1),
-(NOW(), 'Honor Magic5 Pro - Công nghệ cao cấp', 'https://byvn.net/rhiq', 'Honor Magic5 Pro', 20990000, 45, NOW(), 1, 1, 1),
+-- Smartphones (Danh mục 1: Điện thoại)
+(NOW(), 'Xiaomi Redmi Note 12 Pro - Hiệu năng ổn định', 'https://byvn.net/2qP6', 'Xiaomi Redmi Note 12 Pro', 8990000, 100, NOW(), 6, 1, 4, 'SP0001'),
+(NOW(), 'Realme GT Neo 5 - Sạc siêu nhanh', 'https://byvn.net/kvZe', 'Realme GT Neo 5', 10990000, 80, NOW(), 9, 1, 9, 'SP0002'),
+(NOW(), 'Oppo Find X5 Pro - Thiết kế sang trọng', 'https://byvn.net/XHnW', 'Oppo Find X5 Pro', 19990000, 50, NOW(), 9, 1, 3, 'SP0003'),
+(NOW(), 'Vivo X90 Pro - Camera chuyên nghiệp', 'https://byvn.net/3hgh', 'Vivo X90 Pro', 22990000, 60, NOW(), 1, 1, 1, 'SP0004'),
+(NOW(), 'Honor Magic5 Pro - Công nghệ cao cấp', 'https://byvn.net/rhiq', 'Honor Magic5 Pro', 20990000, 45, NOW(), 1, 1, 1, 'SP0005'),
+(NOW(), 'Samsung Galaxy S23 Ultra - Flagship hàng đầu', 'https://byvn.net/s23u', 'Samsung Galaxy S23 Ultra', 29990000, 40, NOW(), 2, 1, 2, 'SP0006'),
+(NOW(), 'iPhone 15 Pro Max - Đỉnh cao công nghệ', 'https://byvn.net/ip15pm', 'iPhone 15 Pro Max', 33990000, 55, NOW(), 1, 1, 1, 'SP0007'),
+(NOW(), 'Xiaomi 14 Ultra - Camera đỉnh cao', 'https://byvn.net/xm14u', 'Xiaomi 14 Ultra', 25990000, 35, NOW(), 6, 1, 4, 'SP0008'),
 
--- Tablets
-(NOW(), 'Huawei MatePad Pro 11 - Màn hình sắc nét', 'https://byvn.net/U9pt', 'Huawei MatePad Pro 11', 16990000, 70, NOW(), 7, 2, 8),
-(NOW(), 'Xiaomi Pad 6 Pro - Hiệu năng mạnh mẽ', 'https://byvn.net/RX3m', 'Xiaomi Pad 6 Pro', 14990000, 65, NOW(), 6, 2, 4),
-(NOW(), 'Realme Pad 2 - Giải trí đa năng', 'https://byvn.net/E4HL', 'Realme Pad 2', 8990000, 90, NOW(), 9, 2, 3),
+-- Tablets (Danh mục 2: Máy tính bảng)
+(NOW(), 'Huawei MatePad Pro 11 - Màn hình sắc nét', 'https://byvn.net/U9pt', 'Huawei MatePad Pro 11', 16990000, 70, NOW(), 7, 2, 8, 'SP0009'),
+(NOW(), 'Xiaomi Pad 6 Pro - Hiệu năng mạnh mẽ', 'https://byvn.net/RX3m', 'Xiaomi Pad 6 Pro', 14990000, 65, NOW(), 6, 2, 4, 'SP0010'),
+(NOW(), 'Realme Pad 2 - Giải trí đa năng', 'https://byvn.net/E4HL', 'Realme Pad 2', 8990000, 90, NOW(), 9, 2, 3, 'SP0011'),
+(NOW(), 'iPad Pro M2 12.9 - Hiệu suất vượt trội', 'https://byvn.net/ipadm2', 'iPad Pro M2 12.9', 31990000, 40, NOW(), 1, 2, 1, 'SP0012'),
+(NOW(), 'Samsung Galaxy Tab S9 Ultra - Màn hình lớn', 'https://byvn.net/tabs9u', 'Samsung Galaxy Tab S9 Ultra', 26990000, 30, NOW(), 2, 2, 2, 'SP0013'),
+(NOW(), 'Lenovo Tab P12 Pro - Giải trí đỉnh cao', 'https://byvn.net/lenovop12', 'Lenovo Tab P12 Pro', 17990000, 25, NOW(), 10, 2, 10, 'SP0014'),
 
--- Laptops
-(NOW(), 'HP Spectre x360 - Laptop 2 trong 1', 'https://byvn.net/KNjw', 'HP Spectre x360', 39990000, 40, NOW(), 1, 3, 1),
-(NOW(), 'Acer Predator Helios 300 - Gaming', 'https://byvn.net/9cmk', 'Acer Predator Helios 300', 35990000, 50, NOW(), 1, 3, 1),
-(NOW(), 'Lenovo ThinkPad X1 Carbon - Doanh nhân', 'https://byvn.net/6Mva', 'Lenovo ThinkPad X1 Carbon', 45990000, 35, NOW(), 9, 3, 10),
-(NOW(), 'Microsoft Surface Laptop 5 - Sang trọng', 'https://byvn.net/Ga38', 'Microsoft Surface Laptop 5', 37990000, 45, NOW(), 1, 3, 1),
+-- Laptops (Danh mục 3: Laptop)
+(NOW(), 'HP Spectre x360 - Laptop 2 trong 1', 'https://byvn.net/KNjw', 'HP Spectre x360', 39990000, 40, NOW(), 1, 3, 1, 'SP0015'),
+(NOW(), 'Acer Predator Helios 300 - Gaming', 'https://byvn.net/9cmk', 'Acer Predator Helios 300', 35990000, 50, NOW(), 1, 3, 1, 'SP0016'),
+(NOW(), 'Lenovo ThinkPad X1 Carbon - Doanh nhân', 'https://byvn.net/6Mva', 'Lenovo ThinkPad X1 Carbon', 45990000, 35, NOW(), 10, 3, 10, 'SP0017'),
+(NOW(), 'Microsoft Surface Laptop 5 - Sang trọng', 'https://byvn.net/Ga38', 'Microsoft Surface Laptop 5', 37990000, 45, NOW(), 1, 3, 1, 'SP0018'),
+(NOW(), 'MacBook Pro 16 M3 Max - Mạnh mẽ', 'https://byvn.net/mbpm3', 'MacBook Pro 16 M3 Max', 89990000, 20, NOW(), 1, 3, 1, 'SP0019'),
+(NOW(), 'Dell XPS 15 - Thiết kế cao cấp', 'https://byvn.net/dellxps15', 'Dell XPS 15', 55990000, 30, NOW(), 5, 3, 7, 'SP0020'),
+(NOW(), 'Asus ROG Zephyrus G16 - Gaming cao cấp', 'https://byvn.net/asusrog', 'Asus ROG Zephyrus G16', 49990000, 25, NOW(), 4, 3, 6, 'SP0021'),
+(NOW(), 'MSI Creator Z16 - Dành cho sáng tạo', 'https://byvn.net/msicre', 'MSI Creator Z16', 51990000, 15, NOW(), 1, 3, 1, 'SP0022');
 
--- Wireless Earbuds
-(NOW(), 'Jabra Elite 7 Pro - Chống ồn tuyệt vời', 'https://byvn.net/prlv', 'Jabra Elite 7 Pro', 4990000, 100, NOW(), 1, 4, 1),
-(NOW(), 'Sony WF-1000XM4 - Âm thanh đỉnh cao', 'https://byvn.net/P2FB', 'Sony WF-1000XM4', 6990000, 80, NOW(), 3, 4, 5),
-(NOW(), 'Beats Fit Pro - Chuyên cho tập luyện', 'https://byvn.net/8LIj', 'Beats Fit Pro', 5490000, 70, NOW(), 1, 4, 1),
+# Thêm dữ liệu vào ProductDetail với cấu trúc mới
+INSERT INTO product_details (screen_size, camera, front_camera, color, description, cpu, gpu, ram, rom, os, os_version, battery, screen_type, screen_resolution, ports, weight, create_at, update_at, product_id)
+VALUES
+-- Điện thoại
+(6.67, 108, 16, 'Xanh', 'Màn hình AMOLED 120Hz, camera AI', 'MediaTek Dimensity 1080', 'Mali-G68 MC4', '8GB', '256GB', 'Android', '12 (MIUI 14)', '5000mAh', 'AMOLED', '2400x1080', 'USB Type-C, 3.5mm jack', 187, NOW(), NOW(), 1),
+(6.74, 50, 16, 'Đen', 'Sạc siêu nhanh 240W, màn hình 144Hz', 'Snapdragon 8+ Gen 1', 'Adreno 730', '12GB', '256GB', 'Android', '13 (Realme UI 4.0)', '4600mAh', 'AMOLED', '2772x1240', 'USB Type-C', 199, NOW(), NOW(), 2),
+(6.7, 50, 32, 'Trắng', 'Camera Hasselblad, màn hình LTPO', 'Snapdragon 8 Gen 1', 'Adreno 730', '12GB', '256GB', 'Android', '12 (ColorOS 12.1)', '5000mAh', 'AMOLED', '3216x1440', 'USB Type-C', 218, NOW(), NOW(), 3),
+(6.78, 50, 32, 'Xám', 'Camera Zeiss, cảm biến 1-inch', 'MediaTek Dimensity 9200', 'Immortalis-G715 MC11', '12GB', '256GB', 'Android', '13 (Funtouch OS 13)', '4870mAh', 'AMOLED', '2800x1260', 'USB Type-C', 215, NOW(), NOW(), 4),
+(6.81, 50, 12, 'Xanh dương', 'Camera 200MP, màn hình LTPO', 'Snapdragon 8 Gen 2', 'Adreno 740', '12GB', '512GB', 'Android', '13 (Magic UI 7.0)', '5100mAh', 'OLED', '2848x1312', 'USB Type-C', 219, NOW(), NOW(), 5),
+(6.8, 200, 12, 'Đen Phantom', 'Bút S-Pen, zoom quang 10x', 'Snapdragon 8 Gen 2', 'Adreno 740', '12GB', '512GB', 'Android', '13 (One UI 5.1)', '5000mAh', 'Dynamic AMOLED 2X', '3088x1440', 'USB Type-C', 234, NOW(), NOW(), 6),
+(6.7, 48, 12, 'Titan Tự nhiên', 'Khung titan, Dynamic Island', 'A17 Pro', 'Apple GPU (6-core)', '8GB', '512GB', 'iOS', '17', '4422mAh', 'Super Retina XDR OLED', '2796x1290', 'USB Type-C', 221, NOW(), NOW(), 7),
+(6.73, 50, 32, 'Đen', 'Camera Leica, chụp đêm tốt', 'Snapdragon 8 Gen 2', 'Adreno 740', '16GB', '512GB', 'Android', '14 (MIUI 15)', '5000mAh', 'AMOLED', '3200x1440', 'USB Type-C', 227, NOW(), NOW(), 8),
 
--- Smartwatches
-(NOW(), 'Huawei Watch GT 3 Pro - Thiết kế cao cấp', 'https://byvn.net/C36Y', 'Huawei Watch GT 3 Pro', 12990000, 60, NOW(), 7, 5, 8),
-(NOW(), 'Amazfit GTR 4 - Pin siêu lâu', 'https://byvn.net/LbFR', 'Amazfit GTR 4', 8990000, 90, NOW(), 1, 5, 1),
-(NOW(), 'Mobvoi TicWatch Pro 5 - Wear OS', 'https://byvn.net/Hf2u', 'Mobvoi TicWatch Pro 5', 10990000, 50, NOW(), 1, 5, 1),
+-- Máy tính bảng
+(11.0, 13, 8, 'Xám', 'Hỗ trợ bút M-Pencil', 'Snapdragon 888', 'Adreno 660', '8GB', '256GB', 'HarmonyOS', '3.0', '8300mAh', 'OLED', '2560x1600', 'USB Type-C', 449, NOW(), NOW(), 9),
+(11.2, 50, 20, 'Bạc', 'Hỗ trợ bút, tần số quét 144Hz', 'Snapdragon 8+ Gen 1', 'Adreno 730', '8GB', '256GB', 'Android', '13 (MIUI 14)', '8600mAh', 'IPS LCD', '2880x1800', 'USB Type-C', 490, NOW(), NOW(), 10),
+(11.5, 8, 5, 'Xanh lá', 'Màn hình lớn, pin khỏe', 'MediaTek Helio G99', 'Mali-G57 MC2', '8GB', '256GB', 'Android', '13 (Realme UI 4.0)', '8360mAh', 'IPS LCD', '2000x1200', 'USB Type-C, 3.5mm jack', 538, NOW(), NOW(), 11),
+(12.9, 12, 12, 'Space Gray', 'Chip M2, màn hình mini-LED', 'Apple M2', 'Apple M2 GPU (10-core)', '16GB', '1TB', 'iPadOS', '17', '10758mAh', 'Liquid Retina XDR', '2732x2048', 'USB Type-C', 682, NOW(), NOW(), 12),
+(14.6, 13, 12, 'Graphite', 'Màn hình lớn nhất, S-Pen', 'Snapdragon 8 Gen 2', 'Adreno 740', '12GB', '512GB', 'Android', '13 (One UI 5.1)', '11200mAh', 'Dynamic AMOLED 2X', '2960x1848', 'USB Type-C', 732, NOW(), NOW(), 13),
+(12.6, 13, 8, 'Storm Gray', 'Màn hình AMOLED rộng', 'Snapdragon 8 Gen 1', 'Adreno 730', '8GB', '256GB', 'Android', '13', '10200mAh', 'AMOLED', '2560x1600', 'USB Type-C, 3.5mm jack', 565, NOW(), NOW(), 14),
 
--- Bluetooth Speakers
-(NOW(), 'Marshall Emberton II - Âm thanh cổ điển', 'https://byvn.net/tWq5', 'Marshall Emberton II', 6490000, 100, NOW(), 1, 6, 1),
-(NOW(), 'Sony SRS-XB43 - Bass mạnh mẽ', 'https://byvn.net/a3AY', 'Sony SRS-XB43', 5990000, 120, NOW(), 3, 6, 5),
-(NOW(), 'Sonos Move - Loa di động thông minh', 'https://byvn.net/lMNN', 'Sonos Move', 11990000, 40, NOW(), 1, 6, 1),
+-- Laptop
+(13.5, NULL, NULL, 'Xanh Navy', 'Laptop xoay gập 360 độ', 'Intel Core i7-1355U', 'Intel Iris Xe', '16GB', '1TB SSD', 'Windows', '11 Home', '66Wh', 'OLED Touch', '3000x2000', '2x Thunderbolt 4, USB-A, 3.5mm jack', 1360, NOW(), NOW(), 15),
+(15.6, NULL, NULL, 'Đen', 'Laptop gaming hiệu năng cao', 'Intel Core i7-12700H', 'NVIDIA RTX 3070 Ti 8GB', '16GB', '1TB SSD', 'Windows', '11 Home', '90Wh', 'IPS, 165Hz', '2560x1440', '3x USB-A, USB-C, HDMI, Ethernet, 3.5mm jack', 2400, NOW(), NOW(), 16),
+(14.0, NULL, NULL, 'Đen', 'Laptop doanh nhân cao cấp', 'Intel Core i7-1360P', 'Intel Iris Xe', '16GB', '1TB SSD', 'Windows', '11 Pro', '57Wh', 'IPS', '2880x1800', '2x Thunderbolt 4, USB-A, HDMI, 3.5mm jack', 1120, NOW(), NOW(), 17),
+(13.5, NULL, NULL, 'Bạch kim', 'Thiết kế sang trọng, pin dài', 'Intel Core i7-1255U', 'Intel Iris Xe', '16GB', '512GB SSD', 'Windows', '11 Home', '47.4Wh', 'PixelSense Touch', '2256x1504', 'USB-A, Thunderbolt 4, 3.5mm jack', 1270, NOW(), NOW(), 18),
+(16.2, NULL, NULL, 'Space Black', 'Hiệu năng mạnh mẽ, màn hình mini-LED', 'Apple M3 Max (16-core)', 'Apple M3 Max (40-core)', '64GB', '2TB SSD', 'macOS', 'Sonoma', '100Wh', 'Liquid Retina XDR, 120Hz', '3456x2234', '3x Thunderbolt 4, HDMI, SD card, 3.5mm jack', 2170, NOW(), NOW(), 19),
+(15.6, NULL, NULL, 'Platinum', 'Thiết kế mỏng nhẹ, màn hình OLED', 'Intel Core i9-13900H', 'NVIDIA RTX 4070 8GB', '32GB', '1TB SSD', 'Windows', '11 Pro', '86Wh', 'OLED', '3456x2160', '2x Thunderbolt 4, USB-A, HDMI, SD card, 3.5mm jack', 1920, NOW(), NOW(), 20),
+(16.0, NULL, NULL, 'Off Black', 'Laptop gaming cao cấp', 'Intel Core i9-13900H', 'NVIDIA RTX 4080 12GB', '32GB', '2TB SSD', 'Windows', '11 Pro', '90Wh', 'ROG Nebula Display, 240Hz', '2560x1600', '2x USB-C, 2x USB-A, HDMI, LAN, 3.5mm jack', 2100, NOW(), NOW(), 21),
+(16.0, NULL, NULL, 'Xám Core Black', 'Laptop cho nhà sáng tạo', 'Intel Core i7-12700H', 'NVIDIA RTX 3070 8GB', '32GB', '1TB SSD', 'Windows', '11 Pro', '90Wh', 'Touch', '2560x1600', '2x Thunderbolt 4, USB-A, HDMI, SD card, 3.5mm jack', 2350, NOW(), NOW(), 22);
 
--- Cameras
-(NOW(), 'Panasonic Lumix GH6 - Quay video chuyên nghiệp', 'https://byvn.net/u859', 'Panasonic Lumix GH6', 49990000, 30, NOW(), 1, 7, 1),
-(NOW(), 'Nikon Z9 - Máy ảnh không gương lật đỉnh cao', 'https://byvn.net/qmnh', 'Nikon Z9', 129990000, 15, NOW(), 1, 7, 1),
-(NOW(), 'GoPro HERO11 Black - Camera hành động', 'https://byvn.net/XHZ2', 'GoPro HERO11 Black', 12990000, 80, NOW(), 1, 7, 1),
-
--- Audio Accessories
-(NOW(), 'Audio-Technica ATH-M50xBT - Tai nghe studio', 'https://byvn.net/UMDY', 'Audio-Technica ATH-M50xBT', 4990000, 100, NOW(), 1, 4, 1),
-(NOW(), 'Beyerdynamic DT 990 Pro - Âm thanh chuyên nghiệp', 'https://byvn.net/3ZLY', 'Beyerdynamic DT 990 Pro', 6990000, 50, NOW(), 1, 4, 1),
-
--- Gaming Accessories
-(NOW(), 'Razer BlackShark V2 - Tai nghe gaming', 'https://byvn.net/nUeV', 'Razer BlackShark V2', 3490000, 150, NOW(), 1, 4, 1),
-(NOW(), 'SteelSeries Arctis Nova Pro - Tai nghe gaming không dây', 'https://byvn.net/ahuF', 'SteelSeries Arctis Nova Pro', 7990000, 60, NOW(), 1, 4, 1),
-
--- Smart Home Devices
-(NOW(), 'Philips Hue Starter Kit - Hệ thống chiếu sáng thông minh', 'https://byvn.net/Q0KX', 'Philips Hue Starter Kit', 4990000, 70, NOW(), 1, 8, 1),
-(NOW(), 'Ring Indoor Cam - Camera an ninh trong nhà', 'https://byvn.net/7efZ', 'Ring Indoor Cam', 2490000, 200, NOW(), 1, 8, 1);
-
-
+# Thêm dữ liệu vào ware_house với giá nhập phù hợp (thấp hơn giá bán khoảng 20-30%)
 INSERT INTO ware_house (import_date, price, product_id) VALUES
-(NOW() , 123 , 1) ,
-(NOW() , 123 , 2) ,
-(NOW() , 123 , 3) ,
-(NOW() , 123 , 4) ,
-(NOW() , 123 , 5) ,
-(NOW() , 123 , 6) ,
-(NOW() , 123 , 7) ,
-(NOW() , 123 , 8) ,
-(NOW() , 123 , 9) ,
-(NOW() , 123 , 10) ;
-
-
-
+                                                            ('2023-11-15', 6990000, 1),  -- Xiaomi Redmi Note 12 Pro (giá bán: 8990000)
+                                                            ('2023-11-20', 8490000, 2),  -- Realme GT Neo 5 (giá bán: 10990000)
+                                                            ('2023-12-05', 15990000, 3), -- Oppo Find X5 Pro (giá bán: 19990000)
+                                                            ('2023-12-10', 17990000, 4), -- Vivo X90 Pro (giá bán: 22990000)
+                                                            ('2023-12-15', 16990000, 5), -- Honor Magic5 Pro (giá bán: 20990000)
+                                                            ('2024-01-05', 23990000, 6), -- Samsung Galaxy S23 Ultra (giá bán: 29990000)
+                                                            ('2024-01-10', 27990000, 7), -- iPhone 15 Pro Max (giá bán: 33990000)
+                                                            ('2024-01-20', 20990000, 8), -- Xiaomi 14 Ultra (giá bán: 25990000)
+                                                            ('2024-02-01', 13490000, 9), -- Huawei MatePad Pro 11 (giá bán: 16990000)
+                                                            ('2024-02-10', 11990000, 10), -- Xiaomi Pad 6 Pro (giá bán: 14990000)
+                                                            ('2024-02-15', 6990000, 11),  -- Realme Pad 2 (giá bán: 8990000)
+                                                            ('2024-02-25', 26990000, 12), -- iPad Pro M2 12.9 (giá bán: 31990000)
+                                                            ('2024-03-01', 21990000, 13), -- Samsung Galaxy Tab S9 Ultra (giá bán: 26990000)
+                                                            ('2024-03-05', 14490000, 14), -- Lenovo Tab P12 Pro (giá bán: 17990000)
+                                                            ('2024-03-10', 32990000, 15), -- HP Spectre x360 (giá bán: 39990000)
+                                                            ('2024-03-15', 29990000, 16), -- Acer Predator Helios 300 (giá bán: 35990000)
+                                                            ('2024-03-20', 38990000, 17), -- Lenovo ThinkPad X1 Carbon (giá bán: 45990000)
+                                                            ('2024-03-25', 31990000, 18), -- Microsoft Surface Laptop 5 (giá bán: 37990000)
+                                                            ('2024-04-01', 75990000, 19), -- MacBook Pro 16 M3 Max (giá bán: 89990000)
+                                                            ('2024-04-05', 46990000, 20), -- Dell XPS 15 (giá bán: 55990000)
+                                                            ('2024-04-10', 41990000, 21), -- Asus ROG Zephyrus G16 (giá bán: 49990000)
+                                                            ('2024-04-15', 43990000, 22); -- MSI Creator Z16 (giá bán: 51990000)
 insert into customers (address, birth_date, customer_name, is_disabled, phone_number)
 values ('Ha Noi', '2002-06-12', 'Tran Hoai An', true, '0981828128'),
        ('Da Nang', '2002-06-12', 'Tuan Khiem', true, '0971218291'),
@@ -189,6 +236,7 @@ values ('Ha Noi', '2002-06-12', 'Tran Hoai An', true, '0981828128'),
        ('Hung Yen', '1993-06-20', 'Mai Van Khanh', true, '0978901234'),
        ('Hai Phong', '1998-04-12', 'Nguyen Van Thang', true, '0989012345'),
        ('Lang Son', '1991-08-07', 'Tran Thi Huong', true, '0990123456');
+
 
 
 INSERT INTO order_products (create_at, payment_status, status, total_price, customer_id)
