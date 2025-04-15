@@ -21,6 +21,9 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer categoryID;
 
+    @Column(unique = true)
+    private String categoryCode;
+
     private String name;
 
     @Lob

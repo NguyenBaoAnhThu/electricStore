@@ -22,8 +22,9 @@
         <div class="form-mb-4">
             <div class="search-container">
                 <form class="search-form" action="/Admin/category-manager" method="get">
-                    <select class="input-select">
-                        <option value="name">Tên danh mục</option>
+                    <select class="input-select" name="searchType">
+                        <option value="name" th:selected="${searchType == 'name' || searchType == null}">Tên danh mục</option>
+                        <option value="code" th:selected="${searchType == 'code'}">Mã danh mục</option>
                     </select>
                     <input class="form-control" type="search" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm danh mục..." aria-label="Search">
                     <button class="btn" style="background-color: #D10024; color: white;" type="submit">
@@ -46,6 +47,7 @@
                         <input type="checkbox" id="selectAll" class="form-check-input">
                     </th>
                     <th width="60">STT</th>
+                    <th>Mã danh mục</th>
                     <th>Tên Danh Mục</th>
                     <th>Mô Tả</th>
                     <!-- Hide Thao tác column for non-admin roles -->
@@ -60,11 +62,13 @@
                         </div>
                     </td>
                     <td th:text="${c.index + 1}"></td>
+                    <td th:text="${category.categoryCode}"></td>
                     <td th:text="${category.name}"></td>
                     <td th:text="${category.description}"></td>
                     <td class="text-center" sec:authorize="hasRole('ROLE_ADMIN')">
                         <button type="button" class="btn btn-warning editCategoryBtn"
                                 th:data-id="${category.categoryID}"
+                                th:data-code="${category.categoryCode}"
                                 th:data-name="${category.name}"
                                 th:data-description="${category.description}">
                             <i class="fas fa-edit"></i>
@@ -75,7 +79,7 @@
             </table>
         </div>
 
-        <!-- Phân trang  và nút xoá -->
+        <!-- Phân trang và nút xoá -->
         <div class="d-flex justify-content-between align-items-center mt-4">
             <button type="button" id="deleteBtn" class="btn btn-danger" title="Xóa" onclick="deleteSelectedCategory()"
                     sec:authorize="hasRole('ROLE_ADMIN')">
@@ -85,7 +89,7 @@
                 <ul class="pagination m-0">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/Admin/category-manager(page=0, keyword=${keyword})}"
+                           th:href="@{/Admin/category-manager(page=0, keyword=${keyword}, searchType=${searchType})}"
                            aria-label="First">
                             <span aria-hidden="true">««</span>
                         </a>
@@ -93,7 +97,7 @@
 
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/Admin/category-manager(page=${currentPage - 2}, keyword=${keyword})}"
+                           th:href="@{/Admin/category-manager(page=${currentPage - 2}, keyword=${keyword}, searchType=${searchType})}"
                            aria-label="Previous">
                             <span aria-hidden="true">«</span>
                         </a>
@@ -106,14 +110,14 @@
                     </li>
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/Admin/category-manager(page=${currentPage}, keyword=${keyword})}"
+                           th:href="@{/Admin/category-manager(page=${currentPage}, keyword=${keyword}, searchType=${searchType})}"
                            aria-label="Next">
                             <span aria-hidden="true">»</span>
                         </a>
                     </li>
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/Admin/category-manager(page=${totalPages - 1}, keyword=${keyword})}"
+                           th:href="@{/Admin/category-manager(page=${totalPages - 1}, keyword=${keyword}, searchType=${searchType})}"
                            aria-label="Last">
                             <span aria-hidden="true">»»</span>
                         </a>
@@ -134,6 +138,11 @@
                 </div>
                 <div class="modal-body">
                     <form id="addCategoryForm" th:action="@{/Admin/category-manager/add}" method="post" th:object="${categorys}">
+                        <div class="mb-3">
+                            <label class="form-label">Mã Danh Mục</label>
+                            <input type="text" class="form-control" th:field="*{categoryCode}" required>
+                            <p th:if="${#fields.hasErrors('categoryCode')}" th:errors="*{categoryCode}" style="color: red"></p>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">Tên Danh Mục</label>
                             <input type="text" class="form-control" th:field="*{name}" required>
@@ -165,6 +174,11 @@
                 <div class="modal-body">
                     <form id="editCategoryForm" th:action="@{/Admin/category-manager/edit}" method="post" th:object="${categorys}">
                         <input type="hidden" id="editCategoryId" name="categoryID" th:field="*{categoryID}">
+                        <div class="mb-3">
+                            <label class="form-label">Mã Danh Mục</label>
+                            <input type="text" class="form-control" id="editCategoryCode" th:field="*{categoryCode}" required>
+                            <p th:if="${#fields.hasErrors('categoryCode')}" th:errors="*{categoryCode}" style="color: red"></p>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">Tên Danh Mục</label>
                             <input type="text" class="form-control" id="editCategoryName" th:field="*{name}" required>
@@ -229,6 +243,80 @@
             // Xóa class 'is-invalid' nếu có
             form.querySelectorAll(".is-invalid").forEach(field => field.classList.remove("is-invalid"));
         });
+
+        // Xử lý nút Edit
+        document.querySelectorAll('.editCategoryBtn').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const code = this.getAttribute('data-code');
+                const name = this.getAttribute('data-name');
+                const description = this.getAttribute('data-description');
+
+                document.getElementById('editCategoryId').value = id;
+                document.getElementById('editCategoryCode').value = code;
+                document.getElementById('editCategoryName').value = name;
+                document.getElementById('editCategoryDescription').value = description;
+
+                // Hiển thị modal
+                const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+                editModal.show();
+            });
+        });
+    });
+</script>
+
+<!-- Script kiểm tra trùng lặp mã danh mục -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Kiểm tra mã danh mục khi thêm mới
+        const categoryCodeInput = document.getElementById('categoryCode');
+        if (categoryCodeInput) {
+            categoryCodeInput.addEventListener('blur', function() {
+                validateCategoryCode(this.value);
+            });
+        }
+
+        // Kiểm tra mã danh mục khi chỉnh sửa
+        const editCategoryCodeInput = document.getElementById('editCategoryCode');
+        if (editCategoryCodeInput) {
+            editCategoryCodeInput.addEventListener('blur', function() {
+                const categoryId = document.getElementById('editCategoryId').value;
+                validateCategoryCode(this.value, categoryId);
+            });
+        }
+
+        // Hàm kiểm tra mã danh mục
+        function validateCategoryCode(code, id = null) {
+            if (!code) return;
+
+            let url = `/Admin/category-manager/check-code?categoryCode=${encodeURIComponent(code)}`;
+            if (id) {
+                url += `&id=${id}`;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(exists => {
+                    const input = id ? editCategoryCodeInput : categoryCodeInput;
+                    if (exists) {
+                        input.classList.add('is-invalid');
+                        let errorMsg = input.nextElementSibling.nextElementSibling;
+                        if (!errorMsg || !errorMsg.classList.contains('invalid-feedback')) {
+                            errorMsg = document.createElement('div');
+                            errorMsg.classList.add('invalid-feedback');
+                            input.parentNode.insertBefore(errorMsg, input.nextElementSibling.nextElementSibling);
+                        }
+                        errorMsg.textContent = 'Mã danh mục này đã tồn tại!';
+                    } else {
+                        input.classList.remove('is-invalid');
+                        const errorMsg = input.nextElementSibling.nextElementSibling;
+                        if (errorMsg && errorMsg.classList.contains('invalid-feedback')) {
+                            errorMsg.textContent = '';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error checking category code:', error));
+        }
     });
 </script>
 </body>

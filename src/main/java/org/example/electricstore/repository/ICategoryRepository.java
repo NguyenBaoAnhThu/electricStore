@@ -12,6 +12,13 @@ import java.util.List;
 public interface ICategoryRepository extends JpaRepository<Category, Integer> {
     List<Category> findByNameContainingIgnoreCase(String keyword);
     Page<Category> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
+
+    List<Category> findByCategoryCodeContainingIgnoreCase(String keyword);
+    Page<Category> findByCategoryCodeContainingIgnoreCase(String keyword, Pageable pageable);
+
     boolean existsByNameIgnoreCase(String name);
     boolean existsByNameIgnoreCaseAndCategoryIDNot(String name, Integer id);
+
+    boolean existsByCategoryCodeIgnoreCase(String categoryCode);
+    boolean existsByCategoryCodeIgnoreCaseAndCategoryIDNot(String categoryCode, Integer id);
 }
