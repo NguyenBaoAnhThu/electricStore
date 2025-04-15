@@ -1,11 +1,16 @@
 package org.example.electricstore.controller.admin;
 
 import org.example.electricstore.DTO.product.ProductChoiceDTO;
+import org.example.electricstore.DTO.supplier.SupplierDTO;
 import org.example.electricstore.mapper.product.ProductMapper;
 import org.example.electricstore.model.Brand;
 import org.example.electricstore.model.Product;
+import org.example.electricstore.model.Supplier;
 import org.example.electricstore.model.WareHouse;
+import org.example.electricstore.repository.IProductRepository;
+import org.example.electricstore.repository.ISupplierRepository;
 import org.example.electricstore.service.impl.BrandService;
+import org.example.electricstore.service.impl.SupplierService;
 import org.example.electricstore.service.impl.WareHouseService;
 import org.example.electricstore.service.interfaces.IProductService;
 import org.springframework.data.domain.Page;
@@ -13,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -27,16 +33,25 @@ public class WareHouseController {
     private final IProductService productService;
     private final ProductMapper productMapper;
     private final BrandService brandService;
+    private ISupplierRepository supplierRepository;
+    private IProductRepository productRepository;
 
     public WareHouseController(WareHouseService wareHouseService,
                                IProductService productService,
                                ProductMapper productMapper,
-                               BrandService brandService) {
+                               BrandService brandService,
+    ISupplierRepository supplierRepository,
+                               IProductRepository productRepository) {
         this.wareHouseService = wareHouseService;
         this.productService = productService;
         this.productMapper = productMapper;
         this.brandService = brandService;
+        this.supplierRepository = supplierRepository;
+        this.productRepository = productRepository;
     }
+
+
+
 
 
    @ModelAttribute("brands")
@@ -58,6 +73,7 @@ public class WareHouseController {
         Page<WareHouse> wareHousePage = wareHouseService.searchWareHouses(
                 importDate, brand, statusStock, productCode, nameFilter, pageable
         );
+        List<Supplier> suppliers = supplierRepository.findAll();
 
         ModelAndView modelAndView = new ModelAndView("admin/warehouse/warehouse-table");
         modelAndView.addObject("wareHousePage", wareHousePage);
@@ -71,6 +87,7 @@ public class WareHouseController {
         modelAndView.addObject("size", size);
         modelAndView.addObject("totalPages", wareHousePage.getTotalPages());
         modelAndView.addObject("currentPage", page);
+        modelAndView.addObject("suppliers", suppliers);
         return modelAndView;
     }
 
@@ -89,12 +106,23 @@ public class WareHouseController {
     }
 
     @GetMapping("/import")
-    public ModelAndView showImport() {
-        return new ModelAndView("admin/warehouse/import");
+    public ModelAndView showImport(@RequestParam(value = "supplierId", required = false) Integer supplierId) {
+        List<Supplier> suppliers = supplierRepository.findAll();
+
+        List<Product> products;
+        if (supplierId != null) {
+            products = productRepository.getProductsBySupplierId(supplierId);
+        } else {
+            products = productRepository.findAll();
+        }
+
+        ModelAndView modelAndView = new ModelAndView("admin/warehouse/import");
+        modelAndView.addObject("suppliers", suppliers);
+        modelAndView.addObject("products", products);
+        modelAndView.addObject("selectedSupplier", supplierId);
+        return modelAndView;
     }
-    @GetMapping("/export")
-    public ModelAndView showExport() {
-        return new ModelAndView("admin/warehouse/export");
-    }
+
+
 
 }

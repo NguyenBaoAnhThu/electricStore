@@ -32,5 +32,7 @@ public interface IProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findBySupplierId(Integer supplierId);
 
     Page<Product> findBySupplierId(Integer supplierId, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.supplier.id = :supplierId")
+    List<Product> getProductsBySupplierId(@Param("supplierId") Integer supplierId);
 
 }
