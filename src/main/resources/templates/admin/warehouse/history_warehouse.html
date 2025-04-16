@@ -95,7 +95,7 @@
              data-user=${'Admin'},
              data-date=${item.invoice.importDate}">
 
-                    <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${currentPage * pageSize + iterStat.index + 1}"></td>
                         <td th:text="${item.invoice.receiptCode}"></td>
                         <td th:text="${item.invoice.importDate}"></td>
                         <td th:text="${item.brand}"></td>
@@ -122,6 +122,34 @@
 
                     </tbody>
                 </table>
+                <!-- Phân trang -->
+                <nav aria-label="Page navigation" class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                            <a class="page-link"
+                               th:href="@{/Admin/ware-houses/history_warehouse(page=${currentPage - 1}, size=10)}"
+                               aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${i == currentPage} ? 'active'" class="page-item">
+                            <a class="page-link"
+                               th:href="@{/Admin/ware-houses/history_warehouse(page=${i}, size=10)}"
+                               th:text="${i + 1}"></a>
+                        </li>
+
+                        <li th:classappend="${currentPage == totalPages - 1} ? 'disabled'" class="page-item">
+                            <a class="page-link"
+                               th:href="@{/Admin/history_warehouse(page=${currentPage + 1}, size=10)}"
+                               aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
             </div>
         </div>
 

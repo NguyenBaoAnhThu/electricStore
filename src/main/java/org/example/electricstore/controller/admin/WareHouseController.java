@@ -127,12 +127,20 @@ public class WareHouseController {
         modelAndView.addObject("selectedSupplier", supplierId);
         return modelAndView;
     }
+
     @GetMapping("/history_warehouse")
-    public ModelAndView showHistoryWarehouse() {
-        List<InvoiceItem> allItems = invoiceItemRepository.findAllWithInvoice(); // lấy trực tiếp InvoiceItem
+    public ModelAndView showHistoryWarehouse(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<InvoiceItem> invoicePage = invoiceItemRepository.findAllWithInvoice(pageable);
 
         ModelAndView modelAndView = new ModelAndView("admin/warehouse/history_warehouse");
-        modelAndView.addObject("invoiceItems", allItems);
+        modelAndView.addObject("invoiceItems", invoicePage.getContent());
+        modelAndView.addObject("currentPage", page); // truyền xuống view
+        modelAndView.addObject("pageSize", size);    // truyền xuống v
+        modelAndView.addObject("totalPages", invoicePage.getTotalPages());
         return modelAndView;
     }
 
