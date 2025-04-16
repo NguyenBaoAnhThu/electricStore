@@ -25,7 +25,7 @@
 <div th:replace="~{admin/fragments/header :: header}"></div>
 <div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
 
-<main class="main-content">
+<main class="main-content" id="invoiceContent">
   <div class="wrapper">
     <!-- Title & Actions -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -141,7 +141,7 @@
     </div>
 
     <div class="text-end mb-5">
-      <button class="btn btn-warning me-2">Lưu Phiếu</button>
+      <button class="btn btn-warning me-2" id="exportPdfButton">Lưu Phiếu</button>
       <button type="button" class="btn btn-danger me-2" onclick="cancelInvoice()">Hủy Phiếu</button>
     </div>
   </div>
@@ -179,7 +179,7 @@
           </div>
 
           <div class="text-end">
-            <p class="fw-bold mb-2">Tổng Tiền Thanh Toán: <span class="text-primary" th:text="${#numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')} + ' VNĐ'"></span></p>
+            <p class="fw-bold mb-2">Tổng Tiền Thanh Toán: <span class="text-primary" id="totalDebt"></span></p>
             <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
             <button type="submit" class="btn btn-primary">Thanh Toán</button>
           </div>
@@ -194,6 +194,8 @@
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const invoiceId = document.getElementById("invoiceId").value;
@@ -202,6 +204,8 @@
     // Hiển thị số tiền đã trả nếu có
     const paidAmount = localStorage.getItem(storageKey) || 0;
     const paidDisplay = document.createElement("li");
+
+
     paidDisplay.className = "list-group-item d-flex justify-content-between";
     paidDisplay.innerHTML = `<span>Đã Thanh Toán</span><strong>${paidAmount} VNĐ</strong>`;
     const listGroup = document.querySelector(".list-group");
@@ -212,7 +216,7 @@
     const total = Number(/*[[${total}]]*/ document.querySelector('h4.text-danger').textContent.replace(/[^\d]/g, ''));
     const remaining = total - Number(paidAmount);
     document.querySelector("#paymentModal .text-danger").textContent = `${remaining} VNĐ`;
-
+    document.getElementById("totalDebt").textContent = `${remaining.toLocaleString()} VNĐ`;
     // Khi submit form thanh toán
     document.getElementById("paymentForm").addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -232,6 +236,75 @@
       alert(msg);
       window.location.href = "/Admin/ware-houses/history_warehouse";
     });
+
+    const exportButton = document.getElementById('exportPdfButton');
+    const invoiceElement = document.getElementById('invoiceContent'); // Phần tử chứa hóa đơn
+    const invoiceCode = document.querySelector('h3 span').textContent || 'hoa-don'; // Lấy mã hóa đơn làm tên file
+
+    if (exportButton && invoiceElement) {
+      exportButton.addEventListener('click', () => {
+        console.log('Bắt đầu xuất PDF...');
+        exportButton.disabled = true;
+        exportButton.textContent = 'Đang xử lý...';
+
+        const { jsPDF } = window.jspdf;
+
+        html2canvas(invoiceElement, {
+          scale: 2,
+          useCORS: true
+        }).then(canvas => {
+          console.log('Đã chụp ảnh màn hình xong.');
+          const imgData = canvas.toDataURL('image/png');
+
+          // Tính toán kích thước PDF và ảnh
+          const pdf = new jsPDF({
+            orientation: 'p', // 'p' for portrait, 'l' for landscape
+            unit: 'mm',        // đơn vị: mm
+            format: 'a4'       // khổ giấy A4
+          });
+
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          const ratio = canvasWidth / canvasHeight;
+
+          let imgWidth = pdfWidth - 20; // Để lại lề 10mm mỗi bên
+          let imgHeight = imgWidth / ratio;
+
+          // Kiểm tra nếu chiều cao vượt quá trang A4
+          let heightLeft = imgHeight;
+          let position = 10; // Vị trí bắt đầu vẽ (cách lề trên 10mm)
+
+          // Thêm ảnh vào trang đầu tiên (lề trên 10mm, lề trái 10mm)
+          pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+          heightLeft -= (pdfHeight - 20); // Trừ đi phần đã vẽ (trừ lề trên dưới)
+
+          // Nếu ảnh dài hơn 1 trang, thêm các trang mới
+          while (heightLeft > 0) {
+            position = position - pdfHeight + 20; // Đặt lại vị trí cho trang mới (cộng lề)
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= (pdfHeight - 20);
+          }
+
+          console.log('Đang lưu file PDF...');
+          // Lưu file PDF với tên là mã hóa đơn
+          pdf.save(`${invoiceCode}.pdf`);
+
+          console.log('Xuất PDF thành công!');
+          exportButton.disabled = false; // Bật lại nút
+          exportButton.textContent = 'Lưu phiếu';
+
+        }).catch(error => {
+          console.error('Lỗi khi xuất PDF:', error);
+          alert('Đã xảy ra lỗi khi tạo file PDF. Vui lòng thử lại.');
+          exportButton.disabled = false; // Bật lại nút nếu có lỗi
+          exportButton.textContent = 'Lưu phiếu';
+        });
+      });
+    }
+
   });
 
   async function cancelInvoice() {

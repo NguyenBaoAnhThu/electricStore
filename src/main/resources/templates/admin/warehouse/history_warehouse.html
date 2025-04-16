@@ -93,14 +93,14 @@
                         th:attr="data-code=${item.invoice.receiptCode},
              data-brand=${item.brand},
              data-user=${'Admin'},
-             data-date=${item.invoice.importDate}">
+             data-date=${item.invoice.importDate}">c
 
                         <td th:text="${currentPage * pageSize + iterStat.index + 1}"></td>
                         <td th:text="${item.invoice.receiptCode}"></td>
                         <td th:text="${item.invoice.importDate}"></td>
                         <td th:text="${item.brand}"></td>
                         <td>Admin</td>
-                        <td th:text="${#numbers.formatDecimal(item.quantity * item.price, 0, 'POINT', 0, 'COMMA')}"></td><td>
+                        <td th:text="${#numbers.formatDecimal(item.quantity * item.price, 1, 'POINT', 0, 'COMMA')}"></td><td>
   <span class="badge px-2 py-2"
         th:classappend="
           ${item.paymentStatus == 'ĐÃ THANH TOÁN'} ? 'bg-success' :
