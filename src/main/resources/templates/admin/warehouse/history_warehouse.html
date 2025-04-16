@@ -31,6 +31,9 @@
     <div class="wrapper">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="tittle">Lịch Sử Nhập Kho</h1>
+            <a th:href="@{/Admin/ware-houses}" class="btn btn-secondary">
+                Quay lại
+            </a>
         </div>
 
         <!-- Form Lọc -->
@@ -92,21 +95,28 @@
              data-user=${'Admin'},
              data-date=${item.invoice.importDate}">
 
-                    <td th:text="${iterStat.index + 1}">1</td>
-                        <td th:text="${item.invoice.receiptCode}">PNK001</td>
-                        <td th:text="${item.invoice.importDate}">2024-04-10</td>
+                    <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${item.invoice.receiptCode}"></td>
+                        <td th:text="${item.invoice.importDate}"></td>
                         <td th:text="${item.brand}"></td>
-                        <td>Admin</td> <!-- Nếu có field người nhập thì thay = item.invoice.createdBy -->
-                        <td th:text="${#numbers.formatDecimal(item.quantity * item.price, 0, 'POINT', 0, 'COMMA')}">10.000.000</td>
-                        <td class="align-items-center" th:classappend="'badge' +
-                   (item.paymentStatus == 'ĐÃ THANH TOÁN' ? ' bg-success' :
-                   (item.paymentStatus == 'ĐANG TIẾN HÀNH' ? ' bg-warning' :
-                   (item.paymentStatus == 'ĐÃ HỦY' ? ' bg-danger' : ' bg-secondary')))"
-                            th:text="${item.paymentStatus}">
-                        </td>
+                        <td>Admin</td>
+                        <td th:text="${#numbers.formatDecimal(item.quantity * item.price, 0, 'POINT', 0, 'COMMA')}"></td><td>
+  <span class="badge px-2 py-2"
+        th:classappend="
+          ${item.paymentStatus == 'ĐÃ THANH TOÁN'} ? 'bg-success' :
+          (${item.paymentStatus == 'ĐÃ HỦY'} ? 'bg-danger' :
+          (${item.paymentStatus == 'ĐANG TIẾN HÀNH'} ? 'bg-warning text-dark' : 'bg-secondary'))"
+        th:text="${item.paymentStatus}">
+  </span>
+                    </td>
+
 
                         <td>
-                            <button class="btn btn-sm btn-info text-white"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-sm btn-info text-white">
+                                <a  th:href="@{/Admin/ware-houses/invoice_form_warehouses/{id}(id=${item.invoice.id})}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </button>
                         </td>
                     </tr>
 

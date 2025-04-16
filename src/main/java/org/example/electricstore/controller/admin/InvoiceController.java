@@ -2,41 +2,38 @@ package org.example.electricstore.controller.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.example.electricstore.model.Invoice;
-import org.example.electricstore.model.InvoiceItem;
 import org.example.electricstore.repository.InvoiceRepository;
-import org.example.electricstore.repository.InvoiceItemRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/Admin/invoice")
+@Controller
+@RequestMapping("/Admin/ware-houses")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 public class InvoiceController {
+    private final InvoiceRepository invoiceRepository;
 
-    private final InvoiceRepository invoiceRepo;
-    private final InvoiceItemRepository invoiceItemRepo;
+    @GetMapping("/invoice_form_warehouses/{id}")
+    public String showInvoiceForm(@PathVariable("id") Long id, Model model) {
+        Invoice invoice = invoiceRepository.findByIdWithProducts(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu nhập"));
 
-    @PostMapping
-    public ResponseEntity<String> saveInvoice(@RequestBody Invoice invoice) {
-        try {
-            invoiceRepo.save(invoice); // Lưu invoice trước để có ID
+        long total = invoice.getProducts().stream()
+                .mapToLong(p -> p.getPrice() * p.getQuantity())
+                .sum() - invoice.getDiscount() + invoice.getAdditionalFees();
 
-            List<InvoiceItem> items = invoice.getProducts();
-            if (items != null) {
-                for (InvoiceItem item : items) {
-                    item.setInvoice(invoice); // Gắn lại hóa đơn sau khi có ID
-                }
-                invoiceItemRepo.saveAll(items);
-            }
-            return ResponseEntity.ok("Lưu hóa đơn thành công!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi hệ thống khi lưu hóa đơn: " + e.getMessage());
-        }
+        long totalQuantity = invoice.getProducts().stream()
+                .mapToLong(p -> p.getQuantity())
+                .sum();
+
+
+        model.addAttribute("invoice", invoice);
+        model.addAttribute("total", total);
+        model.addAttribute("totalQuantity", totalQuantity);
+
+        return "admin/warehouse/invoice_form_warehouses";
     }
 }

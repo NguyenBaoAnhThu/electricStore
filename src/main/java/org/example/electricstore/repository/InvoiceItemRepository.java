@@ -12,4 +12,6 @@ public interface InvoiceItemRepository extends JpaRepository<InvoiceItem, Long> 
 
     @Query("SELECT i FROM InvoiceItem i JOIN FETCH i.invoice")
     List<InvoiceItem> findAllWithInvoice();
+
+
 }

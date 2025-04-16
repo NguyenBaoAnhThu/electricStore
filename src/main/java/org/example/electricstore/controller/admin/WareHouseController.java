@@ -7,6 +7,7 @@ import org.example.electricstore.model.*;
 import org.example.electricstore.repository.IProductRepository;
 import org.example.electricstore.repository.ISupplierRepository;
 import org.example.electricstore.repository.InvoiceItemRepository;
+import org.example.electricstore.repository.InvoiceRepository;
 import org.example.electricstore.service.impl.BrandService;
 import org.example.electricstore.service.impl.SupplierService;
 import org.example.electricstore.service.impl.WareHouseService;
@@ -34,6 +35,7 @@ public class WareHouseController {
     private ISupplierRepository supplierRepository;
     private IProductRepository productRepository;
     private InvoiceItemRepository invoiceItemRepository;
+    private InvoiceRepository invoiceRepository;
 
     public WareHouseController(WareHouseService wareHouseService,
                                IProductService productService,
@@ -41,7 +43,8 @@ public class WareHouseController {
                                BrandService brandService,
     ISupplierRepository supplierRepository,
                                IProductRepository productRepository,
-                               InvoiceItemRepository invoiceItemRepository) {
+                               InvoiceItemRepository invoiceItemRepository,
+                               InvoiceRepository invoiceRepository) {
         this.wareHouseService = wareHouseService;
         this.productService = productService;
         this.productMapper = productMapper;
@@ -49,6 +52,7 @@ public class WareHouseController {
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
         this.invoiceItemRepository = invoiceItemRepository;
+        this.invoiceRepository = invoiceRepository;
     }
 
 
@@ -131,6 +135,10 @@ public class WareHouseController {
         modelAndView.addObject("invoiceItems", allItems);
         return modelAndView;
     }
+
+
+
+
 
 
 }

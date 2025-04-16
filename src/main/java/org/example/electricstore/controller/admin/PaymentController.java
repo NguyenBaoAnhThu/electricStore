@@ -1,14 +1,14 @@
 package org.example.electricstore.controller.admin;
 
+import org.example.electricstore.model.Invoice;
+import org.example.electricstore.model.InvoiceItem;
+import org.example.electricstore.repository.InvoiceRepository;
 import org.example.electricstore.service.interfaces.IPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -35,6 +35,9 @@ public class PaymentController {
 
     @Value("${vnpay.returnUrl}")
     private String vnp_ReturnUrl;
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
 
     @GetMapping("/vnpay")
     public ResponseEntity<?> createPayment(@RequestParam double amount, @RequestParam Integer paymentId) {
@@ -167,4 +170,27 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing payment response");
         }
     }
+    @PostMapping("/invoice/payment")
+    @ResponseBody
+    public ResponseEntity<String> handlePayment(@RequestParam Long invoiceId,
+                                                @RequestParam long amountPaid) {
+        Invoice invoice = invoiceRepository.findByIdWithProducts(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        long total = invoice.getProducts().stream()
+                .mapToLong(i -> i.getPrice() * i.getQuantity())
+                .sum();
+
+        String status = (amountPaid >= total) ? "ĐÃ THANH TOÁN" : "ĐANG TIẾN HÀNH";
+
+        for (InvoiceItem item : invoice.getProducts()) {
+            item.setPaymentStatus(status);
+        }
+
+        invoiceRepository.save(invoice);
+
+        return ResponseEntity.ok("Trạng thái thanh toán đã cập nhật: " + status);
+    }
+
+
 }
