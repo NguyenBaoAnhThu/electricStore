@@ -65,24 +65,34 @@
           </div>
           <div class="col-md-3">
             <label class="form-label">Ngày Nhập Kho</label>
-            <input type="date" class="form-control">
+            <input type="date"  th:value="${invoice.getImportDate()}" class="form-control"/>
           </div>
           <div class="col-md-3">
             <label class="form-label">Nhà Cung Cấp</label>
-            <input type="text" class="form-control" placeholder="Nhập tên NCC">
+            <input type="text" class="form-control"  placeholder="Nhập tên NCC">
           </div>
           <div class="col-md-3">
             <label class="form-label">Ghi Chú</label>
-            <input type="text" class="form-control" placeholder="Ghi chú thêm">
+            <input type="text" th:value="${invoice.getNotes()}" class="form-control"/>
           </div>
         </div>
       </div>
 
       <!-- Lịch Sử Thanh Toán Tab -->
       <div class="tab-pane fade" id="payment" role="tabpanel">
-        <div class="text-center py-5 text-muted">
-          <i class="fas fa-money-check-alt fa-2x mb-3"></i>
-          <p>Chưa có dữ liệu thanh toán.</p>
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+            <tr>
+              <th>Ngày Thanh Toán</th>
+              <th>Phương Thức</th>
+              <th>Số Tiền</th>
+            </tr>
+            </thead>
+            <tbody id="paymentHistoryBody">
+            <!-- JS đổ dữ liệu vào đây -->
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -142,7 +152,13 @@
 
     <div class="text-end mb-5">
       <button class="btn btn-warning me-2" id="exportPdfButton">Lưu Phiếu</button>
-      <button type="button" class="btn btn-danger me-2" onclick="cancelInvoice()">Hủy Phiếu</button>
+      <button th:if="${invoice.products[0].paymentStatus != 'ĐÃ HỦY' and invoice.products[0].paymentStatus != 'ĐÃ THANH TOÁN'}"
+              type="button"
+              class="btn btn-danger me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#cancelModal">
+        Hủy Phiếu
+      </button>
     </div>
   </div>
 </main>
@@ -189,6 +205,32 @@
   </div>
 </div>
 
+
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-secondary">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="cancelModalLabel">Xác nhận hủy phiếu</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3"><strong>⚠️ Bạn có chắc chắn muốn hủy phiếu nhập kho này không?</strong><br>
+          Phiếu đã hủy sẽ không thể tiếp tục xử lý.
+        </p>
+        <div class="mb-3">
+          <label for="cancelReason" class="form-label">Vui lòng nhập lý do Hủy phiếu:</label>
+          <input type="text" class="form-control" id="cancelReason" placeholder="Nhập lý do...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-danger" onclick="confirmCancel()">Xác Nhận</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Footer -->
 <div th:replace="~{admin/fragments/footer :: footer}"></div>
 
@@ -200,36 +242,50 @@
   document.addEventListener("DOMContentLoaded", () => {
     const invoiceId = document.getElementById("invoiceId").value;
     const storageKey = `invoice-paid-${invoiceId}`;
+    const paymentHistoryKey = `payment-history-${invoiceId}`;
+    const paymentStatus = document.querySelector(".badge").textContent.trim();
 
-    // Hiển thị số tiền đã trả nếu có
-    const paidAmount = localStorage.getItem(storageKey) || 0;
+    const paidAmount = Number(localStorage.getItem(storageKey) || 0);
+
     const paidDisplay = document.createElement("li");
-
-
     paidDisplay.className = "list-group-item d-flex justify-content-between";
-    paidDisplay.innerHTML = `<span>Đã Thanh Toán</span><strong>${paidAmount} VNĐ</strong>`;
+    paidDisplay.innerHTML = `<span>Đã Thanh Toán</span><strong>${paidAmount.toLocaleString('vi-VN')} VNĐ</strong>`;
     const listGroup = document.querySelector(".list-group");
     listGroup.appendChild(paidDisplay);
 
-    // Cập nhật modal hiển thị đã thanh toán & còn nợ
-    document.querySelector("#paymentModal .text-success").textContent = `${paidAmount} VNĐ`;
-    const total = Number(/*[[${total}]]*/ document.querySelector('h4.text-danger').textContent.replace(/[^\d]/g, ''));
-    const remaining = total - Number(paidAmount);
-    document.querySelector("#paymentModal .text-danger").textContent = `${remaining} VNĐ`;
-    document.getElementById("totalDebt").textContent = `${remaining.toLocaleString()} VNĐ`;
-    // Khi submit form thanh toán
+    const total = Number(document.querySelector('h4.text-danger').textContent.replace(/[^\d]/g, ''));
+    const remaining = total - paidAmount;
+    document.querySelector("#paymentModal .text-success").textContent = `${paidAmount.toLocaleString('vi-VN')} VNĐ`;
+    document.querySelector("#paymentModal .text-danger").textContent = `${remaining.toLocaleString('vi-VN')} VNĐ`;
+    document.getElementById("totalDebt").textContent = `${remaining.toLocaleString('vi-VN')} VNĐ`;
+
+    renderPaymentHistory(invoiceId);
+
     document.getElementById("paymentForm").addEventListener("submit", async function (e) {
       e.preventDefault();
+
       const amount = Number(document.getElementById("cashAmount").value);
-      const currentPaid = Number(localStorage.getItem(storageKey) || 0);
-      const newPaid = currentPaid + amount;
+      if (!amount || amount <= 0) {
+        alert("Vui lòng nhập số tiền hợp lệ!");
+        return;
+      }
 
-      localStorage.setItem(storageKey, newPaid.toString());
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+      const invoiceId = document.getElementById("invoiceId").value;
+      const paidAt = new Date().toISOString();
 
+      // Gửi lịch sử thanh toán vào API
+      await fetch("/api/payment-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId, method: paymentMethod, amount, paidAt })
+      });
+
+      // Gửi cập nhật số tiền tổng nếu cần
       const res = await fetch("/payment/invoice/payment", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ invoiceId, amountPaid: newPaid })
+        body: new URLSearchParams({ invoiceId, amountPaid: amount })
       });
 
       const msg = await res.text();
@@ -238,8 +294,8 @@
     });
 
     const exportButton = document.getElementById('exportPdfButton');
-    const invoiceElement = document.getElementById('invoiceContent'); // Phần tử chứa hóa đơn
-    const invoiceCode = document.querySelector('h3 span').textContent || 'hoa-don'; // Lấy mã hóa đơn làm tên file
+    const invoiceElement = document.getElementById('invoiceContent');
+    const invoiceCode = document.querySelector('h3 span').textContent || 'hoa-don';
 
     if (exportButton && invoiceElement) {
       exportButton.addEventListener('click', () => {
@@ -269,51 +325,82 @@
           const canvasHeight = canvas.height;
           const ratio = canvasWidth / canvasHeight;
 
-          let imgWidth = pdfWidth - 20; // Để lại lề 10mm mỗi bên
+          let imgWidth = pdfWidth - 20;
           let imgHeight = imgWidth / ratio;
 
-          // Kiểm tra nếu chiều cao vượt quá trang A4
+
           let heightLeft = imgHeight;
-          let position = 10; // Vị trí bắt đầu vẽ (cách lề trên 10mm)
+          let position = 10;
 
-          // Thêm ảnh vào trang đầu tiên (lề trên 10mm, lề trái 10mm)
+
           pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-          heightLeft -= (pdfHeight - 20); // Trừ đi phần đã vẽ (trừ lề trên dưới)
+          heightLeft -= (pdfHeight - 20);
 
-          // Nếu ảnh dài hơn 1 trang, thêm các trang mới
           while (heightLeft > 0) {
-            position = position - pdfHeight + 20; // Đặt lại vị trí cho trang mới (cộng lề)
+            position = position - pdfHeight + 20;
             pdf.addPage();
             pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
             heightLeft -= (pdfHeight - 20);
           }
 
           console.log('Đang lưu file PDF...');
-          // Lưu file PDF với tên là mã hóa đơn
           pdf.save(`${invoiceCode}.pdf`);
 
           console.log('Xuất PDF thành công!');
-          exportButton.disabled = false; // Bật lại nút
+          exportButton.disabled = false;
           exportButton.textContent = 'Lưu phiếu';
 
         }).catch(error => {
           console.error('Lỗi khi xuất PDF:', error);
           alert('Đã xảy ra lỗi khi tạo file PDF. Vui lòng thử lại.');
-          exportButton.disabled = false; // Bật lại nút nếu có lỗi
+          exportButton.disabled = false;
           exportButton.textContent = 'Lưu phiếu';
         });
       });
     }
 
+    async function renderPaymentHistory(invoiceId) {
+      const res = await fetch(`/api/payment-history?invoiceId=${invoiceId}`);
+      const historyList = await res.json();
+
+      const tbody = document.getElementById("paymentHistoryBody");
+      tbody.innerHTML = "";
+
+      if (!historyList.length) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Chưa có dữ liệu thanh toán.</td></tr>`;
+        return;
+      }
+
+      historyList.forEach(entry => {
+        const row = document.createElement("tr");
+        const paidDate = new Date(entry.paidAt).toLocaleString("vi-VN");
+        row.innerHTML = `
+      <td>${paidDate}</td>
+      <td>${entry.method}</td>
+      <td>${Number(entry.amount).toLocaleString('vi-VN')} VNĐ</td>
+    `;
+        tbody.appendChild(row);
+      });
+    }
   });
 
-  async function cancelInvoice() {
+  async function confirmCancel() {
     const invoiceId = document.getElementById("invoiceId").value;
+    const reason = document.getElementById("cancelReason").value.trim();
+
+    if (reason === "") {
+      alert("Vui lòng nhập lý do hủy phiếu!");
+      return;
+    }
 
     const res = await fetch("/api/Admin/invoice/cancel", {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ invoiceId })
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        invoiceId: invoiceId
+      })
     });
 
     const msg = await res.text();
