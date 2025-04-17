@@ -3,12 +3,8 @@ package org.example.electricstore.controller.admin;
 import org.example.electricstore.DTO.product.ProductChoiceDTO;
 import org.example.electricstore.DTO.supplier.SupplierDTO;
 import org.example.electricstore.mapper.product.ProductMapper;
-import org.example.electricstore.model.Brand;
-import org.example.electricstore.model.Product;
-import org.example.electricstore.model.Supplier;
-import org.example.electricstore.model.WareHouse;
-import org.example.electricstore.repository.IProductRepository;
-import org.example.electricstore.repository.ISupplierRepository;
+import org.example.electricstore.model.*;
+import org.example.electricstore.repository.*;
 import org.example.electricstore.service.impl.BrandService;
 import org.example.electricstore.service.impl.SupplierService;
 import org.example.electricstore.service.impl.WareHouseService;
@@ -35,19 +31,28 @@ public class WareHouseController {
     private final BrandService brandService;
     private ISupplierRepository supplierRepository;
     private IProductRepository productRepository;
+    private InvoiceItemRepository invoiceItemRepository;
+    private InvoiceRepository invoiceRepository;
+    private IWareHouseRepository wareHouseRepository;
 
     public WareHouseController(WareHouseService wareHouseService,
                                IProductService productService,
                                ProductMapper productMapper,
                                BrandService brandService,
-    ISupplierRepository supplierRepository,
-                               IProductRepository productRepository) {
+                               ISupplierRepository supplierRepository,
+                               IProductRepository productRepository,
+                               InvoiceItemRepository invoiceItemRepository,
+                               InvoiceRepository invoiceRepository,
+                               IWareHouseRepository wareHouseRepository) {
         this.wareHouseService = wareHouseService;
         this.productService = productService;
         this.productMapper = productMapper;
         this.brandService = brandService;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
+        this.invoiceItemRepository = invoiceItemRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.wareHouseRepository = wareHouseRepository;
     }
 
 
@@ -116,12 +121,42 @@ public class WareHouseController {
             products = productRepository.findAll();
         }
 
+        // Gán giá từ WareHouse (mới nhất hoặc logic phù hợp)
+        for (Product product : products) {
+            // Tìm danh sách kho theo productId
+            List<WareHouse> relatedWarehouses = wareHouseRepository.findByProductIdOrderByImportDateDesc(product.getProductID());
+
+            // Gán giá nếu có warehouse
+            if (!relatedWarehouses.isEmpty()) {
+                WareHouse latest = relatedWarehouses.get(0); // Lấy phiếu nhập gần nhất
+                product.setPrice(latest.getPrice());          // Gán vào Product để hiển thị ở view
+            }
+        }
         ModelAndView modelAndView = new ModelAndView("admin/warehouse/import");
         modelAndView.addObject("suppliers", suppliers);
         modelAndView.addObject("products", products);
         modelAndView.addObject("selectedSupplier", supplierId);
         return modelAndView;
     }
+
+    @GetMapping("/history_warehouse")
+    public ModelAndView showHistoryWarehouse(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<InvoiceItem> invoicePage = invoiceItemRepository.findAllWithInvoice(pageable);
+
+        ModelAndView modelAndView = new ModelAndView("admin/warehouse/history_warehouse");
+        modelAndView.addObject("invoiceItems", invoicePage.getContent());
+        modelAndView.addObject("currentPage", page); // truyền xuống view
+        modelAndView.addObject("pageSize", size);    // truyền xuống v
+        modelAndView.addObject("totalPages", invoicePage.getTotalPages());
+        return modelAndView;
+    }
+
+
+
 
 
 

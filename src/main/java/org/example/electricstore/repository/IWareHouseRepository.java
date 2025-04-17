@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 
 @Repository
@@ -35,5 +36,8 @@ public interface IWareHouseRepository extends JpaRepository<WareHouse, Integer> 
 
     WareHouse findByProduct (Product product);
 
+
+    @Query("SELECT w FROM WareHouse w WHERE w.product.productID = :productId")
+    List<WareHouse> findByProductIdOrderByImportDateDesc(@Param("productId") Integer productId);
 
 }
