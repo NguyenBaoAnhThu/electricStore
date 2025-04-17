@@ -271,21 +271,37 @@
       }
 
       const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-      const invoiceId = document.getElementById("invoiceId").value;
-      const paidAt = new Date().toISOString();
+      const currentPaid = Number(localStorage.getItem(storageKey) || 0);
+      const newPaid = currentPaid + amount;
 
-      // Gửi lịch sử thanh toán vào API
+      localStorage.setItem(storageKey, newPaid.toString());
+
+      const historyList = JSON.parse(localStorage.getItem(paymentHistoryKey)) || [];
+
+      const newEntry = {
+        method: paymentMethod,
+        amount: amount,
+        paidAt: new Date().toISOString()
+      };
+
+      historyList.push(newEntry);
+      localStorage.setItem(paymentHistoryKey, JSON.stringify(historyList));
+
+
       await fetch("/api/payment-history", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoiceId, method: paymentMethod, amount, paidAt })
+        body: JSON.stringify({
+          invoiceId,
+          ...newEntry
+        })
       });
 
-      // Gửi cập nhật số tiền tổng nếu cần
+      renderPaymentHistory(invoiceId);
       const res = await fetch("/payment/invoice/payment", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ invoiceId, amountPaid: amount })
+        body: new URLSearchParams({ invoiceId, amountPaid: newPaid })
       });
 
       const msg = await res.text();
@@ -382,6 +398,8 @@
         tbody.appendChild(row);
       });
     }
+
+
   });
 
   async function confirmCancel() {
