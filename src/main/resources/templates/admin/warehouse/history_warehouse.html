@@ -93,7 +93,7 @@
                         th:attr="data-code=${item.invoice.receiptCode},
              data-brand=${item.brand},
              data-user=${'Admin'},
-             data-date=${item.invoice.importDate}">c
+             data-date=${item.invoice.importDate}">
 
                         <td th:text="${currentPage * pageSize + iterStat.index + 1}"></td>
                         <td th:text="${item.invoice.receiptCode}"></td>
