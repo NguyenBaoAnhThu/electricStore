@@ -272,25 +272,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
-    // --- Khai báo biến toàn cục và Hằng số ---
-    const STORAGE_KEY = 'warehouseImportDraft'; // Key cho localStorage
+    const STORAGE_KEY = 'warehouseImportDraft';
     const productContainer = document.getElementById("productContainer");
     const noProductsMessage = document.getElementById('no-products-message');
 
-    // --- Hàm Định dạng và Tính Toán (Sử dụng BigInt) ---
-
-    /**
-     * Định dạng một số hoặc chuỗi số thành tiền tệ VNĐ, sử dụng BigInt nếu có thể.
-     * @param {number|string|bigint} amount - Giá trị cần format.
-     * @returns {string} - Chuỗi tiền tệ đã định dạng hoặc 'Không hợp lệ'.
-     */
-
-
-    /**
-     * Cập nhật thành tiền cho một hàng sản phẩm và tùy chọn lưu nháp.
-     * @param {HTMLInputElement} input - Input (số lượng hoặc đơn giá) đã thay đổi.
-     * @param {boolean} [shouldSaveDraft=false] - Có lưu nháp sau khi cập nhật không.
-     */
     function updateRowTotal(input, shouldSaveDraft = false) {
         const row = input.closest('tr');
         if (!row) return;
@@ -312,8 +297,8 @@
             const quantityBigInt = BigInt(quantityString);
             const priceBigInt = BigInt(priceString);
 
-            // Validate Quantity
-            if (quantityBigInt <= 0n) { // Số lượng phải > 0
+
+            if (quantityBigInt <= 0n) {
                 quantityInput.classList.add('is-invalid');
                 if(quantityValidation) { quantityValidation.textContent = "SL phải > 0"; quantityValidation.classList.remove('d-none'); }
                 rowHasError = true;
@@ -322,13 +307,12 @@
                 if(quantityValidation) quantityValidation.classList.add('d-none');
             }
 
-            // Validate Price
+
             if (priceBigInt < 0n) {
                 priceInput.classList.add('is-invalid');
                 if(priceValidation) { priceValidation.textContent = "Giá không được âm"; priceValidation.classList.remove('d-none'); }
                 rowHasError = true;
             } else {
-                // Check if formatting was already applied on blur/input
                 if (!priceInput.classList.contains('is-invalid')) {
                     priceInput.classList.remove('is-invalid');
                     if(priceValidation) priceValidation.classList.add('d-none');
@@ -337,13 +321,13 @@
 
 
             if (rowHasError) {
-                totalField.value = 0n; // Thành tiền = 0 nếu có lỗi
+                totalField.value = 0n;
             } else {
                 const rowTotalBigInt = quantityBigInt * priceBigInt;
                 totalField.value = rowTotalBigInt;
             }
 
-            calculateTotals(shouldSaveDraft); // Luôn tính tổng sau khi cập nhật hàng
+            calculateTotals(shouldSaveDraft);
 
         } catch (error) {
             console.error("Error calculating row total:", error);
@@ -355,14 +339,11 @@
                 quantityInput.classList.add('is-invalid');
             }
             totalField.value = 'Lỗi';
-            calculateTotals(shouldSaveDraft); // Tính lại tổng, có thể sẽ báo lỗi tổng
+            calculateTotals(shouldSaveDraft);
         }
     }
 
-    /**
-     * Tính toán và cập nhật các giá trị tổng cộng (tổng SL, tổng tiền, tổng giá trị nhập).
-     * @param {boolean} [shouldSaveDraft=false] - Có lưu nháp sau khi tính toán không.
-     */
+
     function calculateTotals(shouldSaveDraft = false) {
         let totalQuantityBigInt = 0n;
         let totalAmountBigInt = 0n;
@@ -372,24 +353,22 @@
             const quantityInput = row.querySelector('.quantity-input');
             const totalField = row.querySelector('.row-total');
 
-            // Check if row has error state
             if (row.querySelector('.is-invalid') || totalField.value === 'Lỗi' || totalField.value === 'Không hợp lệ') {
                 hasRowError = true;
-                // Don't process this row for totals if it's invalid
                 return;
             }
 
             try {
                 const quantityString = quantityInput.value.replace(/[^\d]/g, '');
-                const totalString = totalField.value.replace(/[^\d-]/g, ''); // Clean formatted total
+                const totalString = totalField.value.replace(/[^\d-]/g, '');
 
                 const quantity = quantityString === '' ? 0n : BigInt(quantityString);
                 const rowTotal = totalString === '' ? 0n : BigInt(totalString);
 
                 if (quantity < 0n || rowTotal < 0n) {
-                    hasRowError = true; // Treat negative values found here as error
+                    hasRowError = true;
                     console.warn("Negative value detected during total calculation in row:", row);
-                    return; // Skip row with negative values
+                    return;
                 }
 
                 totalQuantityBigInt += quantity;
@@ -401,15 +380,15 @@
             }
         });
 
-        // Hiển thị thông báo nếu không có sản phẩm
+
         toggleNoProductsMessage();
 
-        // If any row had processing errors, show error in totals
+
         if (hasRowError) {
             document.getElementById('totalQuantity').textContent = 'Lỗi';
             document.getElementById('totalAmount').textContent = 'Lỗi';
             document.getElementById('grandTotal').textContent = 'Lỗi';
-            if (shouldSaveDraft) saveDraftToLocalStorage(); // Save even if error state exists
+            if (shouldSaveDraft) saveDraftToLocalStorage();
             return;
         }
 
@@ -418,24 +397,18 @@
             const discountInput = document.getElementById('discount');
             const vatInput = document.getElementById('vat');
             const additionalFeesInput = document.getElementById('additionalFees');
-            // const paidAmountInput = document.getElementById('paidAmount'); // Optional
 
             const discountStr = discountInput.value.replace(/[^\d-]/g, '');
             const additionalFeesStr = additionalFeesInput.value.replace(/[^\d-]/g, '');
-            // const paidStr = paidAmountInput ? paidAmountInput.value.replace(/[^\d-]/g, '') : '0';
 
             const discountBigInt = discountStr === '' ? 0n : BigInt(discountStr);
             const vatPercent = parseFloat(vatInput.value) || 0;
             const additionalFeesBigInt = additionalFeesStr === '' ? 0n : BigInt(additionalFeesStr);
-            // const paidBigInt = paidStr === '' ? 0n : BigInt(paidStr);
 
             let footerHasError = false;
-            // Validate footer inputs
             if (discountBigInt < 0n) { discountInput.classList.add('is-invalid'); footerHasError = true; } else { discountInput.classList.remove('is-invalid'); }
             if (vatPercent < 0) { vatInput.classList.add('is-invalid'); footerHasError = true; } else { vatInput.classList.remove('is-invalid'); }
             if (additionalFeesBigInt < 0n) { additionalFeesInput.classList.add('is-invalid'); footerHasError = true; } else { additionalFeesInput.classList.remove('is-invalid'); }
-            // if (paidBigInt < 0n && paidAmountInput) { paidAmountInput.classList.add('is-invalid'); footerHasError = true; } else if (paidAmountInput) { paidAmountInput.classList.remove('is-invalid'); }
-
 
             if (footerHasError) {
                 document.getElementById('grandTotal').textContent = 'Lỗi (giá trị âm)';
@@ -443,33 +416,26 @@
                 return;
             }
 
-            // Calculate grand total with BigInt
+
             const amountAfterDiscount = totalAmountBigInt - discountBigInt;
-            const vatMultiplier = BigInt(Math.round(vatPercent * 100)); // Keep 2 decimal places for VAT %
-            const vatAmountBigInt = (amountAfterDiscount * vatMultiplier) / 10000n; // Divide by 100 * 100
+            const vatMultiplier = BigInt(Math.round(vatPercent * 100));
+            const vatAmountBigInt = (amountAfterDiscount * vatMultiplier) / 10000n;
             const grandTotalBigInt = amountAfterDiscount + vatAmountBigInt + additionalFeesBigInt;
-            // const remainingBigInt = grandTotalBigInt - paidBigInt; // Optional
-
-
-            // Update UI
             document.getElementById('totalQuantity').textContent = totalQuantityBigInt.toString();
             document.getElementById('totalAmount').textContent = formatCurrency(totalAmountBigInt);
             document.getElementById('grandTotal').textContent = formatCurrency(grandTotalBigInt < 0n ? 0n : grandTotalBigInt);
-            // document.getElementById('remainingAmount').textContent = formatCurrency(remainingBigInt < 0n ? 0n : remainingBigInt); // Optional
 
         } catch (error) {
             console.error("Error calculating final totals:", error);
             document.getElementById('grandTotal').textContent = 'Lỗi';
-            // Mark related footer inputs as invalid maybe
         }
 
-        // Save draft if requested
         if (shouldSaveDraft) {
             saveDraftToLocalStorage();
         }
     }
 
-    /** Hiển thị/Ẩn thông báo khi không có sản phẩm */
+
     function toggleNoProductsMessage() {
         if (productContainer.childElementCount === 0) {
             noProductsMessage?.classList.remove('d-none');
@@ -479,9 +445,7 @@
     }
 
 
-    // --- Hàm Xử lý Bảng Sản phẩm ---
 
-    /** Thêm các sản phẩm đã chọn từ modal vào bảng chính */
     function addSelectedProducts() {
         const checkboxes = document.querySelectorAll("#productList .product-checkbox:checked");
         let added = false;
@@ -495,14 +459,14 @@
                 const code = cb.dataset.code || '';
                 const name = cb.dataset.name || 'N/A';
                 const brand = cb.dataset.brand || 'N/A';
-                const price = cb.dataset.price || '0'; // Giá gốc (dạng string)
+                const price = cb.dataset.price || '0';
 
                 let row = document.createElement("tr");
                 row.id = `product-row-${id}`;
-                let currentIndex = productContainer.childElementCount; // Vị trí hiện tại
+                let currentIndex = productContainer.childElementCount;
 
-                const formattedPrice = formatCurrency(price); // Format giá để hiển thị
-                const formattedRowTotal = formatCurrency(price); // Thành tiền ban đầu = Đơn giá * 1
+                const formattedPrice = formatCurrency(price);
+                const formattedRowTotal = formatCurrency(price);
 
                 row.innerHTML = `
                     <td class="stt-column">${currentIndex + 1}</td>
@@ -539,12 +503,12 @@
                 productContainer.appendChild(row);
                 added = true;
             }
-            cb.checked = false; // Bỏ chọn checkbox sau khi xử lý
+            cb.checked = false;
         });
 
         if (added) {
-            reindexProductRows(); // Đánh lại số thứ tự và index
-            calculateTotals(true); // Tính lại tổng và lưu nháp
+            reindexProductRows();
+            calculateTotals(true);
         }
 
         updateSelectedCount();
@@ -553,21 +517,21 @@
 
         const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
         if (modal) modal.hide();
-        toggleNoProductsMessage(); // Kiểm tra lại thông báo
+        toggleNoProductsMessage();
     }
 
-    /** Xóa một hàng sản phẩm khỏi bảng */
+
     function removeProduct(id) {
         const productRow = document.getElementById(`product-row-${id}`);
         if (productRow) {
             productRow.remove();
-            reindexProductRows(); // Đánh lại số thứ tự và index
-            calculateTotals(true); // Tính lại tổng và lưu nháp
-            toggleNoProductsMessage(); // Kiểm tra lại thông báo
+            reindexProductRows();
+            calculateTotals(true);
+            toggleNoProductsMessage();
         }
     }
 
-    /** Đánh lại số thứ tự và cập nhật index cho các input trong bảng sản phẩm */
+
     function reindexProductRows() {
         const rows = productContainer.querySelectorAll('tr');
         rows.forEach((row, index) => {
@@ -584,15 +548,12 @@
     }
 
 
-    // --- Hàm Xử lý Modal Sản phẩm ---
-
-    /** Cập nhật số lượng sản phẩm được chọn trong modal */
     function updateSelectedCount() {
         const count = document.querySelectorAll("#productList .product-checkbox:checked").length;
         document.getElementById('selectedCount').textContent = count + ' sản phẩm được chọn';
     }
 
-    /** Lọc danh sách sản phẩm trong modal */
+
     function filterProducts() {
         const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
         const rows = document.querySelectorAll("#productList tr");
@@ -604,64 +565,34 @@
             row.style.display = isVisible ? "" : "none";
             if (isVisible) visibleCount++;
         });
-        // Hiển thị thông báo nếu không có sản phẩm nào khớp
         const noModalMsg = document.getElementById('no-modal-products');
         if (noModalMsg) {
             noModalMsg.classList.toggle('d-none', visibleCount > 0);
         }
     }
 
-    /** Xử lý khi thay đổi nhà cung cấp (ví dụ: tải lại trang với supplierId) */
     function handleSupplierChange(supplierId) {
-        // Lưu trạng thái nháp hiện tại trước khi tải lại trang
-        // (Quan trọng: người dùng có thể mất dữ liệu nếu không lưu kịp)
         saveDraftToLocalStorage();
-        // Tải lại trang với tham số supplierId
         window.location.href = '?supplierId=' + supplierId;
-        // Lưu ý: Cần đảm bảo backend xử lý tham số này và load lại đúng danh sách sản phẩm
     }
-    /**
-     * Format VNĐ số lớn, tự động xử lý cả dạng E+ (exponential) và thêm 3 số 0 nếu bị tràn.
-     * @param {string|number} input
-     * @returns {string}
-     */
-    /**
-     * Format VNĐ cho số lớn, xử lý cả dạng E (exponential) và chỉ thêm 3 số 0 nếu bị tràn.
-     * Các số thường giữ nguyên.
-     * @param {string|number} input
-     * @returns {string}
-     */
-    /**
-     * Format VNĐ với quy tắc:
-     * - Nếu là exponential (E): parse & hiển thị với dấu chấm + thêm 3 số 0
-     * - Nếu số bình thường < 10 triệu: không format (hiển thị nguyên gốc)
-     * - Nếu >= 10 triệu: dùng .toLocaleString('vi-VN')
-     * @param {string|number} input
-     * @returns {string}
-     */
+
     function formatCurrency(input) {
         try {
             if (typeof input === 'number') input = input.toString();
             input = input.toString().trim();
 
-            // Xử lý exponential (E, e)
             if (/e[\+\-]?\d+/i.test(input)) {
                 const numeric = Number(input);
                 if (isNaN(numeric)) return 'Không hợp lệ';
 
-                const extended = BigInt(Math.floor(numeric)); // Thêm 3 số 0
+                const extended = BigInt(Math.floor(numeric));
                 return extended.toLocaleString('vi-VN');
             }
 
-            // Loại bỏ ký tự không phải số
             const clean = input.replace(/[^\d]/g, '');
             if (clean === '') return '0';
 
             const value = BigInt(clean);
-
-
-
-            // Ngược lại thì format có dấu chấm
             return value.toLocaleString('vi-VN');
         } catch (err) {
             console.warn('Lỗi formatCurrency:', err, input);
@@ -670,9 +601,6 @@
     }
 
 
-    // --- Hàm Xử lý LocalStorage ---
-
-    /** Lưu trạng thái form hiện tại vào localStorage */
     function saveDraftToLocalStorage() {
         try {
             const draftData = {
@@ -684,11 +612,9 @@
                 },
                 products: [],
                 footer: {
-                    // Lưu giá trị đã được làm sạch
                     discount: document.getElementById('discount')?.value.replace(/[^\d-]/g, '') || '0',
                     vat: document.getElementById('vat')?.value || '0',
                     additionalFees: document.getElementById('additionalFees')?.value.replace(/[^\d-]/g, '') || '0',
-                    // paidAmount: document.getElementById('paidAmount')?.value.replace(/[^\d-]/g, '') || '0' // Optional
                 }
             };
 
@@ -708,19 +634,18 @@
                         productName: nameInput ? nameInput.value : '',
                         brand: brandInput ? brandInput.value : '',
                         quantity: quantityInput.value.replace(/[^\d]/g, '') || '1',
-                        price: priceInput.value.replace(/[^\d-]/g, '') || '0' // Lưu giá trị sạch
+                        price: priceInput.value.replace(/[^\d-]/g, '') || '0'
                     });
                 }
             });
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
-            // console.log('Draft saved.'); // Debug
         } catch (error) {
             console.error("Error saving draft:", error);
         }
     }
 
-    /** Tải và áp dụng trạng thái nháp từ localStorage */
+
     function loadDraftFromLocalStorage() {
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (!savedData) return;
@@ -729,9 +654,6 @@
             const draftData = JSON.parse(savedData);
             if (!draftData) return;
 
-            // console.log('Loading draft:', draftData); // Debug
-
-            // --- Restore Header ---
             if (draftData.header) {
                 document.getElementById('receiptCode').value = draftData.header.receiptCode || '';
                 document.getElementById('importDate').value = draftData.header.importDate || '';
@@ -739,28 +661,25 @@
                 document.getElementById('notes').value = draftData.header.notes || '';
             }
 
-            // --- Restore Footer (format after setting value) ---
+
             if (draftData.footer) {
                 const discountInput = document.getElementById('discount');
                 const vatInput = document.getElementById('vat');
                 const additionalFeesInput = document.getElementById('additionalFees');
-                // const paidInput = document.getElementById('paidAmount'); // Optional
 
-                if(discountInput) discountInput.value = draftData.footer.discount || '0'; // Gán giá trị đã format
-                if(vatInput) vatInput.value = draftData.footer.vat || '0'; // VAT là số %
-                if(additionalFeesInput) additionalFeesInput.value = draftData.footer.additionalFees || '0'; // Gán giá trị đã format
-                // if(paidInput) paidInput.value = formatCurrency(draftData.footer.paidAmount || '0'); // Optional
+                if(discountInput) discountInput.value = draftData.footer.discount || '0';
+                if(vatInput) vatInput.value = draftData.footer.vat || '0';
+                if(additionalFeesInput) additionalFeesInput.value = draftData.footer.additionalFees || '0';
             }
 
-            // --- Restore Product Table ---
-            productContainer.innerHTML = ''; // Clear current table
+
+            productContainer.innerHTML = '';
             if (draftData.products && Array.isArray(draftData.products)) {
                 draftData.products.forEach((productData, index) => {
                     let row = document.createElement("tr");
                     row.id = `product-row-${productData.productId}`;
                     let currentIndex = index;
 
-                    // Re-calculate totals for the loaded row
                     const quantityBigInt = BigInt(productData.quantity || '1');
                     const priceBigInt = BigInt(productData.price || '0');
                     const rowTotalBigInt = quantityBigInt * priceBigInt;
@@ -799,56 +718,37 @@
                     `;
                     productContainer.appendChild(row);
                 });
-                toggleNoProductsMessage(); // Update message visibility
+                toggleNoProductsMessage();
             }
 
-            // Recalculate all totals AFTER restoring everything
-            // No need to reindex here as we built it sequentially
-            calculateTotals(false); // Calculate totals but don't save again immediately
+            calculateTotals(false);
 
         } catch (error) {
             console.error("Error loading draft:", error);
-            localStorage.removeItem(STORAGE_KEY); // Clear corrupted data
+            localStorage.removeItem(STORAGE_KEY);
         }
     }
 
-    /** Xóa dữ liệu nháp trước khi submit form thực sự */
+
     function clearDraftBeforeSubmit(event) {
-        // Kiểm tra validation của form trước khi xóa (tùy chọn)
-        // if (!document.getElementById('warehouseImportForm').checkValidity()) {
-        //     // Ngăn submit nếu form không hợp lệ và không xóa nháp
-        //     event.preventDefault();
-        //     console.log("Form invalid, submit prevented.");
-        //     return;
-        // }
         console.log("Form submitting, clearing draft...");
         localStorage.removeItem(STORAGE_KEY);
-        // Form sẽ tiếp tục submit bình thường
     }
 
 
 
-
-
-    // --- Khởi tạo và Gắn Event Listeners ---
     document.addEventListener("DOMContentLoaded", function() {
-        // Sidebar toggle (giả sử có trong layout.js)
-        // document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
-        //     document.body.classList.toggle('sidebar-collapsed');
-        // });
 
         const cancelBtn = document.getElementById('cancelBtn');
         const confirmCancelBtn = document.getElementById('confirmCancelBtn');
         const productListBody = document.getElementById('productList');
         const selectAllCheckbox = document.getElementById('selectAll');
 
-        // Load draft data first
         loadDraftFromLocalStorage();
 
-        // Initial calculation based on loaded/default data
-        calculateTotals(false); // Calculate without saving initially
+        calculateTotals(false);
 
-        // Event Listeners for saving draft on changes
+
         document.getElementById('receiptCode')?.addEventListener('blur', saveDraftToLocalStorage);
         document.getElementById('importDate')?.addEventListener('change', saveDraftToLocalStorage);
         document.getElementById('supplier')?.addEventListener('change', () => {
@@ -856,10 +756,10 @@
             // saveDraftToLocalStorage(); // Save if not reloading page
         });
         document.getElementById('notes')?.addEventListener('blur', saveDraftToLocalStorage);
-        document.getElementById('discount')?.addEventListener('blur', () => calculateTotals(true)); // Save after formatting and calculation
-        document.getElementById('vat')?.addEventListener('input', () => calculateTotals(true));     // Save on input for %
-        document.getElementById('additionalFees')?.addEventListener('blur', () => calculateTotals(true)); // Save after formatting and calculation
-        // document.getElementById('paidAmount')?.addEventListener('blur', () => calculateTotals(true)); // Optional
+        document.getElementById('discount')?.addEventListener('blur', () => calculateTotals(true));
+        document.getElementById('vat')?.addEventListener('input', () => calculateTotals(true));
+        document.getElementById('additionalFees')?.addEventListener('blur', () => calculateTotals(true));
+
 
         // Cancel button logic
         if (cancelBtn) {
@@ -872,8 +772,8 @@
         // Confirm Cancel button logic
         if (confirmCancelBtn) {
             confirmCancelBtn.addEventListener('click', function() {
-                localStorage.removeItem(STORAGE_KEY); // Clear draft on confirmed cancel
-                window.location.href = document.querySelector('.btn-secondary').href; // Go back using the "Quay lại" link href
+                localStorage.removeItem(STORAGE_KEY);
+                window.location.href = document.querySelector('.btn-secondary').href;
             });
         }
 
@@ -897,7 +797,6 @@
             });
         }
 
-        // Add event listener to form submit
         const form = document.getElementById('warehouseImportForm');
         if (form) {
             // The onsubmit="clearDraftBeforeSubmit(event)" handles this now

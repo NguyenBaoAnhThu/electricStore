@@ -328,11 +328,11 @@
           console.log('Đã chụp ảnh màn hình xong.');
           const imgData = canvas.toDataURL('image/png');
 
-          // Tính toán kích thước PDF và ảnh
+
           const pdf = new jsPDF({
-            orientation: 'p', // 'p' for portrait, 'l' for landscape
-            unit: 'mm',        // đơn vị: mm
-            format: 'a4'       // khổ giấy A4
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
           });
 
           const pdfWidth = pdf.internal.pageSize.getWidth();
